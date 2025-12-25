@@ -6,26 +6,22 @@ import { NFormItem } from 'naive-ui';
 import { NInput } from 'naive-ui';
 import { NButton } from 'naive-ui';
 import type { FormInst, FormRules } from 'naive-ui'
-import type { UserRegisterRequest } from '~/utils/api';
+import type { UserLoginRequest } from '~/utils/api';
 import { api } from '~/utils/api';
 
 const isVisible = defineModel<boolean>({required: true});
-const registerRequest = reactive<UserRegisterRequest>({
+const loginRequest = reactive<UserLoginRequest>({
   email: '',
-  password: '',
-  firstName: '',
-  lastName: ''
+  password: ''
 })
 const formRef = ref<FormInst | null>(null);
 const message = useMessage()
 const size = ref<'small' | 'medium' | 'large'>('medium')
 function handleCloseAction() {
     isVisible.value = false;
-    Object.assign(registerRequest, {
+    Object.assign(loginRequest, {
       email: '',
-      password: '',
-      firstName: '',
-      lastName: ''
+      password: ''
     })
 }
 
@@ -33,8 +29,8 @@ function handleConfirmAction(event: MouseEvent) {
   event.preventDefault()
   formRef.value?.validate(async (errors) => {
     if (!errors) {
-        let response = await api.registerUser(registerRequest)
-        message.success('Registered successfully');
+        let response = await api.loginUser(loginRequest)
+        message.success('Login successfully');
         handleCloseAction();
     }
     else {
@@ -45,16 +41,6 @@ function handleConfirmAction(event: MouseEvent) {
 }
 
 const rules: FormRules = {
-  firstName: {
-    required: true,
-    message: 'Please input your name',
-    trigger: ['input', 'blur']
-  },
-  lastName: {
-    required: true,
-    message: 'Please input your surname',
-    trigger: ['input', 'blur']
-  },
   password: {
     required: true,
     message: 'Please input your password',
@@ -81,30 +67,24 @@ const rules: FormRules = {
             <n-form
                 ref="formRef"
                 :label-width="80"
-                :model="registerRequest"
+                :model="loginRequest"
                 :rules="rules"
                 :size="size">
 
-              <div class="space-y-4">
-                    <n-form-item label="Name" path="firstName">
-                  <n-input v-model:value="registerRequest.firstName" placeholder="Input Name" class="w-full" />
-                    </n-form-item>
-                    <n-form-item label="Surname" path="lastName">
-                  <n-input v-model:value="registerRequest.lastName" placeholder="Input Surname" class="w-full" />
-                    </n-form-item>
-                    <n-form-item label="Password" path="password">
-                  <n-input v-model:value="registerRequest.password" placeholder="Input Password" class="w-full" type="password" />
-                    </n-form-item>
-                    <n-form-item label="Email" path="email">
-                  <n-input v-model:value="registerRequest.email" placeholder="Input Email" class="w-full" />
-                    </n-form-item>
-                </div>
-              <div class="mt-8 flex justify-end gap-3">
+            <div class="space-y-4">
+                <n-form-item label="Email" path="email">
+                    <n-input v-model:value="loginRequest.email" placeholder="Input Email" class="w-full" />
+                </n-form-item>
+                <n-form-item label="Password" path="password">
+                    <n-input v-model:value="loginRequest.password" placeholder="Input Password" class="w-full" type="password" />
+                </n-form-item>
+            </div>
+            <div class="mt-8 flex justify-end gap-3">
                 <n-button @click="handleCloseAction" secondary>
                   Cancel
                 </n-button>
                 <n-button @click="handleConfirmAction" type="primary">
-                  Register
+                  Login
                 </n-button>
               </div>
             </n-form>
