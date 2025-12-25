@@ -7,10 +7,15 @@
 
 <template>
   <n-config-provider :theme="darkTheme">
-    <div class="min-h-screen bg-neutral-700"> 
+    <div class="min-h-screen bg-neutral-900 text-white">
       <n-message-provider>
-        <NuxtPage />
+        <NuxtLayout>
+          <NuxtPage />
+        </NuxtLayout>
       </n-message-provider>
     </div>
   </n-config-provider>
 </template>
+
+
+
