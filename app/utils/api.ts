@@ -1,39 +1,20 @@
-export interface UserResponse {
-  id: string
-  email: string
-  firstName: string
-  lastName: string
-}
+import { type UserResponse } from '~/utils/Responses/UserResponse'
+import { type UserLoginResponse } from '~/utils/Responses/UserLoginResponse'
+import { type UserLoginRequest } from '~/utils/Requests/UserLoginRequest'
+import { type UserRegisterRequest } from '~/utils/Requests/UserRegisterRequest'
 
-export interface UserLoginResponse extends UserResponse {
-  accessToken: string
-}
-
-export interface UserLoginRequest {
-  email: string
-  password: string
-}
-
-export interface UserRegisterRequest {
-  email: string
-  password: string
-  firstName: string
-  lastName: string
-}
-
-
-let accessToken: string | null = null
+export const accessToken = ref<string | null>(null)
 let currentUser: UserResponse | null = null
 
 
 function withAuthHeaders(
   headers: Record<string, string> = {}
 ): Record<string, string> {
-  if (!accessToken) return headers
+  if (!accessToken.value) return headers
 
   return {
     ...headers,
-    Authorization: `Bearer ${accessToken}`,
+    Authorization: `Bearer ${accessToken.value}`,
   }
 }
 
@@ -75,19 +56,14 @@ export const api = {
 
     const data = (await response.json()) as UserLoginResponse
 
-    accessToken = data.accessToken
-    currentUser = {
-      id: data.id,
-      email: data.email,
-      firstName: data.firstName,
-      lastName: data.lastName,
-    }
+    accessToken.value = data.accessToken
+    currentUser = data.user
 
     return currentUser
   },
 
   logout() {
-    accessToken = null
+    accessToken.value = null
     currentUser = null
   },
 

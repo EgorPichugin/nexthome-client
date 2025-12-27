@@ -6,7 +6,7 @@ import { NFormItem } from 'naive-ui';
 import { NInput } from 'naive-ui';
 import { NButton } from 'naive-ui';
 import type { FormInst, FormRules } from 'naive-ui'
-import type { UserRegisterRequest } from '~/utils/api';
+import type { UserRegisterRequest } from '~/utils/Requests/UserRegisterRequest';
 import { api } from '~/utils/api';
 
 const isVisible = defineModel<boolean>({required: true});
@@ -72,7 +72,7 @@ const rules: FormRules = {
     <n-modal v-model:show="isVisible">
         <n-card
         style="width: 600px"
-        title="Modal"
+        title="Registration"
         :bordered="false"
         size="huge"
         role="dialog"
