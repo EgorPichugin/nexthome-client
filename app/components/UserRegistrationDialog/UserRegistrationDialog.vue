@@ -6,16 +6,19 @@ import { NFormItem } from 'naive-ui';
 import { NInput } from 'naive-ui';
 import { NButton } from 'naive-ui';
 import type { FormInst, FormRules } from 'naive-ui'
+import { useApiError } from '~/composables/useApiError';
 import type { UserRegisterRequest } from '~/utils/Requests/UserRegisterRequest';
+import type { UserResponse } from '~/utils/Responses/UserResponse';
 import { api } from '~/utils/api';
 
+const { getUserErrorMessage } = useApiError()
 const isVisible = defineModel<boolean>({required: true});
 const registerRequest = reactive<UserRegisterRequest>({
   email: '',
   password: '',
   firstName: '',
   lastName: ''
-})
+});
 const formRef = ref<FormInst | null>(null);
 const message = useMessage()
 const size = ref<'small' | 'medium' | 'large'>('medium')
@@ -33,9 +36,14 @@ function handleConfirmAction(event: MouseEvent) {
   event.preventDefault()
   formRef.value?.validate(async (errors) => {
     if (!errors) {
-        let response = await api.registerUser(registerRequest)
+      let response: UserResponse;
+      try {
+        response = await api.registerUser(registerRequest)
         message.success('Registered successfully');
         handleCloseAction();
+      } catch (error: any) {
+        message.error(getUserErrorMessage(error));
+      }
     }
     else {
         console.log(errors);
@@ -69,15 +77,16 @@ const rules: FormRules = {
 </script>
 
 <template>
-    <n-modal v-model:show="isVisible">
+    <n-modal 
+    v-model:show="isVisible"
+    @update:show="(value: boolean) => { if (!value) handleCloseAction() }">
         <n-card
         style="width: 600px"
         title="Registration"
         :bordered="false"
         size="huge"
         role="dialog"
-        aria-modal="true"
-        @close="handleCloseAction">
+        aria-modal="true">
             <n-form
                 ref="formRef"
                 :label-width="80"
