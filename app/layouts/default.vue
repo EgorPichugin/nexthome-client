@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import { NImage } from 'naive-ui'
 import { NButton } from 'naive-ui';
-import { accessToken, api } from '~/utils/api'
+import { accessToken, api, currentUser } from '~/utils/api'
 
 const isLoginDialogVisible = ref(false)
 const isRegisterDialogVisible = ref(false)
 
-const isAuthenticated = computed(() => Boolean(accessToken.value))
+const isAuthenticated = computed<boolean>(() => Boolean(accessToken.value))
 
 function handleLogoutAction() {
   api.logout()
@@ -17,8 +17,7 @@ function handleLogoutAction() {
   <div class="min-h-screen bg-neutral-900 text-white">
     <header
       class="sticky top-0 z-10 mx-auto flex max-w-5xl items-center justify-between px-4 py-4
-             bg-neutral-900/80 backdrop-blur"
-    >
+             bg-neutral-900/80 backdrop-blur">
       <div class="flex items-center gap-3 cursor-pointer">
         <n-image
           width="220"
@@ -43,7 +42,6 @@ function handleLogoutAction() {
           </n-button>
         </template>
       </div>
-
     </header>
 
     <main class="mx-auto max-w-5xl px-4">
@@ -51,11 +49,9 @@ function handleLogoutAction() {
     </main>
 
     <UserLoginDialog
-      v-model="isLoginDialogVisible"
-    />
+      v-model="isLoginDialogVisible"/>
 
     <UserRegistrationDialog
-      v-model="isRegisterDialogVisible"
-    />
+      v-model="isRegisterDialogVisible"/>
   </div>
 </template>

@@ -4,7 +4,7 @@ import { type UserLoginRequest } from '~/utils/Requests/UserLoginRequest'
 import { type UserRegisterRequest } from '~/utils/Requests/UserRegisterRequest'
 
 export const accessToken = ref<string | null>(null)
-let currentUser: UserResponse | null = null
+export const currentUser = ref<UserResponse | null>(null)
 
 export type ApiErrorCode =
   | 'REGISTER_FAILED'
@@ -123,18 +123,18 @@ export const api = {
     })
 
     accessToken.value = data.accessToken
-    currentUser = data.user
+    currentUser.value = data.user
 
-    return currentUser
+    return currentUser.value
   },
 
   logout() {
     accessToken.value = null
-    currentUser = null
+    currentUser.value = null
   },
 
   getCurrentUser(): UserResponse | null {
-    return currentUser
+    return currentUser.value
   },
 
   async getAllUsers(): Promise<UserResponse[]> {

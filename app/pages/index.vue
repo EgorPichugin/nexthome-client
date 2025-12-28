@@ -1,27 +1,17 @@
 <script setup lang="ts">
-import { NButton } from 'naive-ui';
-import { api } from '~/utils/api';
-import { useMessage } from 'naive-ui';
-import type { UserResponse } from '~/utils/Responses/UserResponse';
+import { currentUser } from '~/utils/api';
 import { useApiError } from '~/composables/useApiError';
+import UserCard from '~/components/UserCard/UserCard.vue';
 
 const { getUserErrorMessage } = useApiError()
-const message = useMessage();
-const response = ref<string>('');
-async function getAllUsers() {
-    let users: UserResponse[];
-    try {
-        let users = await api.getAllUsers();
-        response.value = JSON.stringify(users, null, 2);
-    } catch (error: any) {
-        message.error(getUserErrorMessage(error));
-    }
-}
+
 </script>
 
 <template>
-    <n-button @click="getAllUsers">
-        Show all users
-    </n-button>
-    response: {{ response }}
+    <template v-if="currentUser">
+        <UserCard v-model="currentUser" />
+    </template>
+    <template v-else>
+        HI Guest   
+    </template>
 </template>
