@@ -6,11 +6,14 @@ import UserEditDialog from '~/components/UserEditDialog/UserEditDialog.vue';
 import { type UserResponse } from '~/utils/Responses/UserResponse';
 import type { CountryResponse } from '~/utils/Responses/CountryResponse';
 import { useAuthStore } from '~/stores/authStore';
+import { storeToRefs } from 'pinia'
 
-const { logout, accessToken } = useAuthStore()
+const authStore = useAuthStore();
+const { accessToken } = storeToRefs(authStore);
+const { logout } = authStore;
 const isLoginDialogVisible = ref(false)
 const isRegisterDialogVisible = ref(false)
-const isAuthenticated = computed<boolean>(() => Boolean((accessToken ?? '').trim()))
+const isAuthenticated = computed<boolean>(() => Boolean((accessToken.value ?? '').trim()))
 const newUser = ref<UserResponse>(<UserResponse>{
   userId: '',
   email: '',

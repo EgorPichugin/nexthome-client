@@ -2,7 +2,8 @@
 import UserCard from '~/components/UserCard/UserCard.vue';
 import { useAuthStore } from '~/stores/authStore';
 
-const { currentUser } = useAuthStore()
+const authStore = useAuthStore();
+const { currentUser } = storeToRefs(authStore);
 
 </script>
 

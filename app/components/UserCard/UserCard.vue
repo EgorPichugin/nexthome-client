@@ -2,10 +2,12 @@
 import { NCard, NTabs, NTabPane, NButton } from 'naive-ui';
 import { type UserResponse } from '~/utils/Responses/UserResponse';
 import { ETab } from './ETab';
+import { type CountryResponse } from '~/utils/Responses/CountryResponse';
 
 const user = defineModel<UserResponse>({required: true});
 const selectedTab = ref<ETab>(ETab.Profile);
 const isUserEditDialogVisible = ref<boolean>(false);
+const countries = ref<CountryResponse[]>([]);
 
 const actionLabel = computed(() => {
   switch (selectedTab.value) {
@@ -20,10 +22,10 @@ const actionLabel = computed(() => {
   }
 })
 
-function handleActionClick() {
+async function handleActionClick() {
   switch (selectedTab.value) {
     case ETab.Profile:
-      return handleEditProfile()
+      return await handleEditProfile()
     case ETab.Experiences:
       return handleAddExperience()
     case ETab.Challenges:
@@ -31,8 +33,9 @@ function handleActionClick() {
   }
 }
 
-function handleEditProfile() {
-    console.log('Save profile clicked');
+async function handleEditProfile() {
+    isUserEditDialogVisible.value = true;
+    countries.value = await api.fetchCountries();
 }
 
 function handleAddExperience() {
@@ -74,5 +77,9 @@ function handleAddChallenge() {
     </template>
   </n-card>
 
-  <!-- <UserEditDialog/> -->
+  <UserEditDialog 
+    v-model="isUserEditDialogVisible"
+    v-model:user="user"
+    v-model:countries="countries"
+    :mode="'edit'"/>
 </template>
