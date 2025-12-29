@@ -1,15 +1,29 @@
 <script setup lang="ts">
 import { NImage } from 'naive-ui'
 import { NButton } from 'naive-ui';
-import { accessToken, api, currentUser } from '~/utils/api'
+import { api } from '~/utils/api'
+import UserEditDialog from '~/components/UserEditDialog/UserEditDialog.vue';
+import { type UserResponse } from '~/utils/Responses/UserResponse';
+import type { CountryResponse } from '~/utils/Responses/CountryResponse';
+import { useAuthStore } from '~/stores/authStore';
 
+const { logout, accessToken } = useAuthStore()
 const isLoginDialogVisible = ref(false)
 const isRegisterDialogVisible = ref(false)
-
-const isAuthenticated = computed<boolean>(() => Boolean(accessToken.value))
-
-function handleLogoutAction() {
-  api.logout()
+const isAuthenticated = computed<boolean>(() => Boolean((accessToken ?? '').trim()))
+const newUser = ref<UserResponse>(<UserResponse>{
+  userId: '',
+  email: '',
+  firstName: '',
+  lastName: '',
+  country: '',
+  city: '',
+});
+  
+const countries = ref<CountryResponse[]>([]);
+async function handleOpenRegisterDialog() {
+  countries.value = await api.fetchCountries();
+  isRegisterDialogVisible.value = true;
 }
 </script>
 
@@ -25,19 +39,18 @@ function handleLogoutAction() {
           preview-disabled
         />
       </div>
-
       <div class="flex items-center gap-3">
         <template v-if="!isAuthenticated">
           <n-button @click="isLoginDialogVisible = true">
             Login
           </n-button>
-          <n-button @click="isRegisterDialogVisible = true">
+          <n-button @click="handleOpenRegisterDialog">
             Register
           </n-button>
         </template>
 
         <template v-else>
-          <n-button @click="handleLogoutAction">
+          <n-button @click="logout">
             Logout
           </n-button>
         </template>
@@ -51,7 +64,10 @@ function handleLogoutAction() {
     <UserLoginDialog
       v-model="isLoginDialogVisible"/>
 
-    <UserRegistrationDialog
-      v-model="isRegisterDialogVisible"/>
+    <UserEditDialog
+      mode="register"
+      v-model="isRegisterDialogVisible"
+      v-model:user="newUser" 
+      v-model:countries="countries"/>
   </div>
 </template>

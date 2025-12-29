@@ -1,9 +1,8 @@
 <script setup lang="ts">
-import { currentUser } from '~/utils/api';
-import { useApiError } from '~/composables/useApiError';
 import UserCard from '~/components/UserCard/UserCard.vue';
+import { useAuthStore } from '~/stores/authStore';
 
-const { getUserErrorMessage } = useApiError()
+const { currentUser } = useAuthStore()
 
 </script>
 
@@ -12,6 +11,6 @@ const { getUserErrorMessage } = useApiError()
         <UserCard v-model="currentUser" />
     </template>
     <template v-else>
-        HI Guest   
+        <InformationForGuest/>  
     </template>
 </template>

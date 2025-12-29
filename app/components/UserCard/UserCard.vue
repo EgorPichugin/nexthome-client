@@ -5,6 +5,7 @@ import { ETab } from './ETab';
 
 const user = defineModel<UserResponse>({required: true});
 const selectedTab = ref<ETab>(ETab.Profile);
+const isUserEditDialogVisible = ref<boolean>(false);
 
 const actionLabel = computed(() => {
   switch (selectedTab.value) {
@@ -22,7 +23,7 @@ const actionLabel = computed(() => {
 function handleActionClick() {
   switch (selectedTab.value) {
     case ETab.Profile:
-      return handleSaveProfile()
+      return handleEditProfile()
     case ETab.Experiences:
       return handleAddExperience()
     case ETab.Challenges:
@@ -30,7 +31,7 @@ function handleActionClick() {
   }
 }
 
-function handleSaveProfile() {
+function handleEditProfile() {
     console.log('Save profile clicked');
 }
 
@@ -45,33 +46,33 @@ function handleAddChallenge() {
 
 <template>
   <n-card content-style="padding: 0;">
-        <n-tabs
-        v-model:value="selectedTab"
-        type="segment"
-        size="large"
-        :tabs-padding="20"
-        pane-style="padding: 20px;"
-        :animated="true"
-        justify-content="center"
-        :trigger="'hover'">
-            <n-tab-pane :name="ETab.Profile">
-                My card
-            </n-tab-pane>
-            <n-tab-pane :name="ETab.Experiences">
-                My experiences
-            </n-tab-pane>
-            <n-tab-pane :name="ETab.Challenges">
-                My pains
-            </n-tab-pane>
-        </n-tabs>
+    <n-tabs
+    v-model:value="selectedTab"
+    type="segment"
+    size="large"
+    :tabs-padding="20"
+    pane-style="padding: 20px;"
+    :animated="true"
+    justify-content="center">
+        <n-tab-pane :name="ETab.Profile">
+            <UserProfile v-model="user" />
+        </n-tab-pane>
+        <n-tab-pane :name="ETab.Experiences">
+            My experiences
+        </n-tab-pane>
+        <n-tab-pane :name="ETab.Challenges">
+            My pains
+        </n-tab-pane>
+    </n-tabs>
 
-        <template #footer>
-          <div class="grid gap-2">
-            <n-button @click="handleActionClick">
-              {{ actionLabel }}
-            </n-button>
-          </div>
-        </template>
+    <template #footer>
+      <div class="grid gap-2">
+        <n-button @click="handleActionClick">
+          {{ actionLabel }}
+        </n-button>
+      </div>
+    </template>
+  </n-card>
 
-    </n-card>
+  <!-- <UserEditDialog/> -->
 </template>

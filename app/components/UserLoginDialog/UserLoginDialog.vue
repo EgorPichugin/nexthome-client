@@ -7,47 +7,52 @@ import { NInput } from 'naive-ui';
 import { NButton } from 'naive-ui';
 import type { FormInst, FormRules } from 'naive-ui'
 import type { UserLoginRequest } from '~/utils/Requests/UserLoginRequest';
-import { api } from '~/utils/api';
-import type { UserResponse } from '~/utils/Responses/UserResponse';
 import { useApiError } from '~/composables/useApiError';
+import { useAuthStore } from '~/stores/authStore';
 
-const { getUserErrorMessage } = useApiError();
+const message = useMessage();
+const { login } = useAuthStore();
+const { getUserErrorMessages } = useApiError();
+
 const isVisible = defineModel<boolean>({required: true});
-const loginRequest = reactive<UserLoginRequest>({
+
+const loginRequest = ref<UserLoginRequest>({
   email: '',
   password: ''
-})
+});
 const formRef = ref<FormInst | null>(null);
-const message = useMessage()
-const size = ref<'small' | 'medium' | 'large'>('medium')
+const isLoading = ref<boolean>(false);
 
-function handleCloseAction() {
-  isVisible.value = false;
-  Object.assign(loginRequest, {
-    email: '',
-    password: ''
-  })
-}
-
-function handleConfirmAction(event: MouseEvent) {
+async function handleConfirmAction(event: MouseEvent) {
   event.preventDefault()
-  formRef.value?.validate(async (errors) => {
-    if (!errors) {
-      let response: UserResponse;
-      try {
-        response = await api.loginUser(loginRequest)
-        message.success('Login successfully');
-        handleCloseAction();
-      } catch (error: any) {
-        message.error(getUserErrorMessage(error));
-      }
+  if (isLoading.value) return
+
+  isLoading.value = true
+
+  try {
+    await formRef.value?.validate()
+    await login(loginRequest.value)
+
+    message.success('Login successfully')
+    isVisible.value = false
+  } catch (error: any) {
+    if (Array.isArray(error)) return
+    const errorMessages = getUserErrorMessages(error);
+    for (const errorMessage of errorMessages) {
+      message.error(errorMessage);
     }
-    else {
-        console.log(errors);
-        message.error('Invalid');
-    }
-  })
+  } finally {
+    isLoading.value = false
+  }
 }
+
+watch(() => isVisible.value, (newValue) => {
+  if (!newValue) {
+  formRef.value?.restoreValidation()
+  loginRequest.value.email = ''
+  loginRequest.value.password = ''
+}
+});
 
 const rules: FormRules = {
   password: {
@@ -65,8 +70,7 @@ const rules: FormRules = {
 
 <template>
     <n-modal 
-    v-model:show="isVisible"
-    @update:show="(value: boolean) => { if (!value) handleCloseAction() }">
+    v-model:show="isVisible">
         <n-card
         style="width: 600px"
         title="Login"
@@ -77,23 +81,23 @@ const rules: FormRules = {
         <n-form
             ref="formRef"
             :label-width="80"
-            :model="loginRequest"
+          :model="loginRequest"
             :rules="rules"
-            :size="size">
+            :size="'medium'">
           <div class="space-y-4">
             <n-form-item label="Email" path="email">
-                <n-input v-model:value="loginRequest.email" placeholder="Input Email" class="w-full" />
+              <n-input v-model:value="loginRequest.email" :disabled="isLoading" placeholder="Input Email" class="w-full" />
             </n-form-item>
             <n-form-item label="Password" path="password">
-                <n-input v-model:value="loginRequest.password" placeholder="Input Password" class="w-full" type="password" />
+              <n-input v-model:value="loginRequest.password" :disabled="isLoading" placeholder="Input Password" class="w-full" type="password" />
             </n-form-item>
           </div>
           <div class="mt-8 flex justify-end gap-3">
-            <n-button @click="handleCloseAction" secondary>
+            <n-button @click="isVisible = false" :disabled="isLoading" secondary>
               Cancel
             </n-button>
-            <n-button @click="handleConfirmAction" type="primary">
-              Login
+            <n-button @click="handleConfirmAction" :loading="isLoading" type="primary">
+              {{ isLoading ? 'Logging in...' : 'Login' }}
             </n-button>
           </div>
         </n-form>

@@ -1,6 +1,5 @@
-import { type UserLoginRequest } from './UserLoginRequest'
+import type { UserUpdateRequest } from './UserUpdateRequest';
 
-export interface UserRegisterRequest extends UserLoginRequest {
-  firstName: string
-  lastName: string
+export interface UserRegisterRequest extends UserUpdateRequest {
+  password: string;
 }
