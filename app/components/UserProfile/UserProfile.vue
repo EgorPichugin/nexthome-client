@@ -11,14 +11,6 @@ const statusLabel = computed(() => {
   return EStatus[user.value.status]
 });
 
-const formatYearMonth = (value: string) => {
-  return new Intl.DateTimeFormat('en-US', {
-    year: 'numeric',
-    month: 'long',
-  }).format(new Date(value))
-}
-
-
 const fullName = computed(() => {
     const first = user.value?.firstName?.trim() ?? ''
     const last = user.value?.lastName?.trim() ?? ''
@@ -42,7 +34,25 @@ const fullName = computed(() => {
                         {{ fullName }}
                     </n-text>
                     <n-text depth="3">
-                        {{ user.email }}
+                        <span class="inline-flex items-center gap-1">
+                            <svg
+                                class="h-4 w-4 shrink-0"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                stroke-width="2"
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                aria-hidden="true"
+                                focusable="false"
+                            >
+                                <path d="M20 10c0 6-8 12-8 12S4 16 4 10a8 8 0 1 1 16 0Z" />
+                                <circle cx="12" cy="10" r="3" />
+                            </svg>
+                            <span>
+                                {{ user.country }}{{ user.city ? ', ' + user.city : '' }}
+                            </span>
+                        </span>
                     </n-text>
                 </n-space>
             </div>

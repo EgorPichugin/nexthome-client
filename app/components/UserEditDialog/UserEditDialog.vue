@@ -167,7 +167,7 @@ const rules: FormRules = {
                   <n-form-item v-if="isRegisterMode" label="Password" path="password">
                     <n-input v-model:value="draftUser.password" :disabled="isLoading" placeholder="Input Password" class="w-full" type="password" autocomplete="off"/>
                   </n-form-item>
-                  <n-form-item label="Email" path="email">
+                  <n-form-item v-if="isRegisterMode" label="Email" path="email">
                     <n-input v-model:value="draftUser.email" :disabled="isLoading" placeholder="Input Email" class="w-full" autocomplete="off"/>
                   </n-form-item>
                   <n-form-item label="Country" path="country">
