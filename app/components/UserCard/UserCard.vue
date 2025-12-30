@@ -34,8 +34,8 @@ async function handleActionClick() {
 }
 
 async function handleEditProfile() {
-    isUserEditDialogVisible.value = true;
     countries.value = await api.fetchCountries();
+    isUserEditDialogVisible.value = true;
 }
 
 function handleAddExperience() {

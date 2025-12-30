@@ -4,7 +4,6 @@ import { useAuthStore } from '~/stores/authStore';
 
 const authStore = useAuthStore();
 const { currentUser } = storeToRefs(authStore);
-
 </script>
 
 <template>

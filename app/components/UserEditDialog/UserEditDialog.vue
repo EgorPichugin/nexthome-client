@@ -77,7 +77,8 @@ async function handleEditRequest() {
     let request: UserUpdateRequest = {
       ...userData
     }
-    await api.updateUser(draftUser.value!.userId, request);
+    let response = await api.updateUser(draftUser.value!.userId, request);
+    user.value = response;
     isVisible.value = false;
     message.success('Profile updated successfully');
   } catch (error: any) {

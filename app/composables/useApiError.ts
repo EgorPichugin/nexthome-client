@@ -9,6 +9,7 @@ export enum EApiErrorCode {
   NETWORK_ERROR = 'NETWORK_ERROR',
   UNKNOWN_ERROR = 'UNKNOWN_ERROR',
   GET_COUNTRIES_FAILED = 'GET_COUNTRIES_FAILED',
+  GET_USER_FAILED = 'GET_USER_FAILED',
 }
 
 const ApiErrorMessages: Record<EApiErrorCode, string> = {
@@ -20,6 +21,7 @@ const ApiErrorMessages: Record<EApiErrorCode, string> = {
     [EApiErrorCode.NETWORK_ERROR]: 'No connection to the server',
     [EApiErrorCode.UNKNOWN_ERROR]: 'An unknown error occurred',
     [EApiErrorCode.GET_COUNTRIES_FAILED]: 'Failed to load countries. Please try again later',
+    [EApiErrorCode.GET_USER_FAILED]: 'Failed to load user. Please try again later',
 }
 
 export class ApiError extends Error {
