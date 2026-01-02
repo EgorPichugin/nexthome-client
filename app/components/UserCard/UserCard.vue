@@ -3,11 +3,28 @@ import { NCard, NTabs, NTabPane, NButton } from 'naive-ui';
 import { type UserResponse } from '~/utils/Responses/UserResponse';
 import { ETab } from './ETab';
 import { type CountryResponse } from '~/utils/Responses/CountryResponse';
+import type { E } from 'vue-router/dist/router-CWoNjPRp.mjs';
+import type { ExperienceCardResponse } from '~/utils/Responses/ExperienceCardResponse';
+import type { ExperienceCardCreateRequest } from '~/utils/Requests/ExperienceCardCreateRequest';
 
 const user = defineModel<UserResponse>({required: true});
+
 const selectedTab = ref<ETab>(ETab.Profile);
 const isUserEditDialogVisible = ref<boolean>(false);
+const isAddExperienceDialogVisible = ref<boolean>(false);
+const isAddChallengeDialogVisible = ref<boolean>(false);
 const countries = ref<CountryResponse[]>([]);
+const experienceCards = ref<ExperienceCardResponse[] | null>(null);
+const newExperienceCard = ref<ExperienceCardCreateRequest>({
+    title: '',
+    description: ''
+});
+
+
+onMounted(async () => {
+    countries.value = await api.fetchCountries();
+    experienceCards.value = await api.getExperienceCardsByUserId(user.value.userId);
+});
 
 const actionLabel = computed(() => {
   switch (selectedTab.value) {
@@ -34,16 +51,19 @@ async function handleActionClick() {
 }
 
 async function handleEditProfile() {
-    countries.value = await api.fetchCountries();
     isUserEditDialogVisible.value = true;
 }
 
 function handleAddExperience() {
-    console.log('Add experience clicked');
+    isAddExperienceDialogVisible.value = true;
 }
 
 function handleAddChallenge() {
-    console.log('Add challenge clicked');
+    isAddChallengeDialogVisible.value = true;
+}
+
+async function refreshExperienceCards() {
+    experienceCards.value = await api.getExperienceCardsByUserId(user.value.userId);
 }
 </script>
 
@@ -61,10 +81,13 @@ function handleAddChallenge() {
             <UserProfile v-model="user" />
         </n-tab-pane>
         <n-tab-pane :name="ETab.Experiences">
-            My experiences
+            <ExperienceProfile v-if="experienceCards" v-model="user" v-model:cards="experienceCards" @refresh="refreshExperienceCards"/>
+            <div v-else class="flex w-full justify-center py-8">
+              <span class="text-gray-500">Loading experience cards...</span>
+            </div>
         </n-tab-pane>
         <n-tab-pane :name="ETab.Challenges">
-            My pains
+            <!-- <ChallengeProfile /> -->
         </n-tab-pane>
     </n-tabs>
 
@@ -82,4 +105,11 @@ function handleAddChallenge() {
     v-model:user="user"
     v-model:countries="countries"
     :mode="'edit'"/>
+
+  <ExperienceCardDialog
+    v-model="isAddExperienceDialogVisible"
+    :card="newExperienceCard"
+    :user-id="user.userId"
+    :mode="'create'"
+    @refresh="refreshExperienceCards"/>
 </template>

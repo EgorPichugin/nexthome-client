@@ -10,6 +10,8 @@ export enum EApiErrorCode {
   UNKNOWN_ERROR = 'UNKNOWN_ERROR',
   GET_COUNTRIES_FAILED = 'GET_COUNTRIES_FAILED',
   GET_USER_FAILED = 'GET_USER_FAILED',
+  GET_EXPERIENCE_CARDS_FAILED = 'GET_EXPERIENCE_CARDS_FAILED',
+  GET_EXPERIENCE_CARD_FAILED = 'GET_EXPERIENCE_CARD_FAILED',
 }
 
 const ApiErrorMessages: Record<EApiErrorCode, string> = {
@@ -22,6 +24,8 @@ const ApiErrorMessages: Record<EApiErrorCode, string> = {
     [EApiErrorCode.UNKNOWN_ERROR]: 'An unknown error occurred',
     [EApiErrorCode.GET_COUNTRIES_FAILED]: 'Failed to load countries. Please try again later',
     [EApiErrorCode.GET_USER_FAILED]: 'Failed to load user. Please try again later',
+    [EApiErrorCode.GET_EXPERIENCE_CARDS_FAILED]: 'Failed to load experience cards. Please try again later',
+    [EApiErrorCode.GET_EXPERIENCE_CARD_FAILED]: 'Failed to load experience card. Please try again later',
 }
 
 export class ApiError extends Error {

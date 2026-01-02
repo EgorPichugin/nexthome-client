@@ -74,9 +74,6 @@ const fullName = computed(() => {
                     <n-descriptions-item v-if="user.status" label="Status">
                         {{ statusLabel }}
                     </n-descriptions-item>
-                    <!-- <n-descriptions-item v-if="user.immigrationDate" label="Immigration Date">
-                        {{ formatYearMonth(user.immigrationDate) }}
-                    </n-descriptions-item> -->
                 </n-descriptions>
             </div>
         </div>

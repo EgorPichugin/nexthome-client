@@ -73,7 +73,7 @@ async function handleConfirmAction(event: MouseEvent) {
 async function handleEditRequest() {
 
   try {
-    const { password, ...userData } = draftUser.value!;
+    const { password, email, ...userData } = draftUser.value!;
     let request: UserUpdateRequest = {
       ...userData
     }
@@ -144,7 +144,7 @@ const rules: FormRules = {
     v-model:show="isVisible">
         <n-card
         style="width: 600px"
-        title="Registration"
+        :title="isRegisterMode ? 'Register' : 'Edit Profile'"
         :bordered="false"
         size="huge"
         role="dialog"
@@ -182,9 +182,6 @@ const rules: FormRules = {
                   <n-form-item label="City" path="city">
                     <n-input v-model:value="draftUser.city" :disabled="isLoading" placeholder="Input City" class="w-full" />
                   </n-form-item>
-                  <!-- <n-form-item label="Immigration date" path="immigrationDate">
-                    <n-input v-model:value="draftUser.immigrationDate" placeholder="Input Immigration Date" class="w-full" />
-                  </n-form-item> -->
                 </div>
               <div class="mt-8 flex justify-end gap-3">
                 <n-button @click="isVisible = false" :disabled="isLoading" secondary>
