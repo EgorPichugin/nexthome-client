@@ -3,19 +3,18 @@ import { NCard, NTabs, NTabPane, NButton } from 'naive-ui';
 import { type UserResponse } from '~/utils/Responses/UserResponse';
 import { ETab } from './ETab';
 import { type CountryResponse } from '~/utils/Responses/CountryResponse';
-import type { E } from 'vue-router/dist/router-CWoNjPRp.mjs';
-import type { ExperienceCardResponse } from '~/utils/Responses/ExperienceCardResponse';
-import type { ExperienceCardCreateRequest } from '~/utils/Requests/ExperienceCardCreateRequest';
+import type { CardResponse } from '~/utils/Responses/CardResponse';
+import type { CreateCardRequest } from '~/utils/Requests/CreateCardRequest';
 
 const user = defineModel<UserResponse>({required: true});
 
 const selectedTab = ref<ETab>(ETab.Profile);
 const isUserEditDialogVisible = ref<boolean>(false);
-const isAddExperienceDialogVisible = ref<boolean>(false);
-const isAddChallengeDialogVisible = ref<boolean>(false);
+const isAddCardDialogVisible = ref<boolean>(false);
 const countries = ref<CountryResponse[]>([]);
-const experienceCards = ref<ExperienceCardResponse[] | null>(null);
-const newExperienceCard = ref<ExperienceCardCreateRequest>({
+const experienceCards = ref<CardResponse[] | null>(null);
+const challengeCards = ref<CardResponse[] | null>(null);
+const newCard = ref<CreateCardRequest>({
     title: '',
     description: ''
 });
@@ -24,6 +23,7 @@ const newExperienceCard = ref<ExperienceCardCreateRequest>({
 onMounted(async () => {
     countries.value = await api.fetchCountries();
     experienceCards.value = await api.getExperienceCardsByUserId(user.value.userId);
+    challengeCards.value = await api.getChallengeCardsByUserId(user.value.userId);
 });
 
 const actionLabel = computed(() => {
@@ -39,31 +39,31 @@ const actionLabel = computed(() => {
   }
 })
 
-async function handleActionClick() {
+async function handleActionClick(): Promise<void> {
   switch (selectedTab.value) {
     case ETab.Profile:
-      return await handleEditProfile()
+      isUserEditDialogVisible.value = true;
+      break;
     case ETab.Experiences:
-      return handleAddExperience()
+      isAddCardDialogVisible.value = true;
+      break;
     case ETab.Challenges:
-      return handleAddChallenge()
+      isAddCardDialogVisible.value = true;
+      break;
   }
 }
 
-async function handleEditProfile() {
-    isUserEditDialogVisible.value = true;
+async function refreshCards() {
+    if (selectedTab.value === ETab.Experiences) {
+        experienceCards.value = await api.getExperienceCardsByUserId(user.value.userId);
+    } else if (selectedTab.value === ETab.Challenges) {
+        challengeCards.value = await api.getChallengeCardsByUserId(user.value.userId);
+    }
 }
 
-function handleAddExperience() {
-    isAddExperienceDialogVisible.value = true;
-}
 
-function handleAddChallenge() {
-    isAddChallengeDialogVisible.value = true;
-}
-
-async function refreshExperienceCards() {
-    experienceCards.value = await api.getExperienceCardsByUserId(user.value.userId);
+async function refreshChallengeCards() {
+    challengeCards.value = await api.getChallengeCardsByUserId(user.value.userId);
 }
 </script>
 
@@ -81,13 +81,24 @@ async function refreshExperienceCards() {
             <UserProfile v-model="user" />
         </n-tab-pane>
         <n-tab-pane :name="ETab.Experiences">
-            <ExperienceProfile v-if="experienceCards" v-model="user" v-model:cards="experienceCards" @refresh="refreshExperienceCards"/>
+            <CardsSpace v-if="experienceCards" 
+              v-model="user"  
+              v-model:cards="experienceCards" 
+              card-type="experience"
+              @refresh="refreshCards"/>
             <div v-else class="flex w-full justify-center py-8">
               <span class="text-gray-500">Loading experience cards...</span>
             </div>
         </n-tab-pane>
         <n-tab-pane :name="ETab.Challenges">
-            <!-- <ChallengeProfile /> -->
+            <CardsSpace v-if="challengeCards" 
+              v-model="user" 
+              v-model:cards="challengeCards" 
+              card-type="challenge"
+              @refresh="refreshChallengeCards"/>
+            <div v-else class="flex w-full justify-center py-8">
+              <span class="text-gray-500">Loading challenge cards...</span>
+            </div>
         </n-tab-pane>
     </n-tabs>
 
@@ -106,10 +117,11 @@ async function refreshExperienceCards() {
     v-model:countries="countries"
     :mode="'edit'"/>
 
-  <ExperienceCardDialog
-    v-model="isAddExperienceDialogVisible"
-    :card="newExperienceCard"
+  <CardDialog
+    v-model="isAddCardDialogVisible"
+    :card="newCard"
     :user-id="user.userId"
     :mode="'create'"
-    @refresh="refreshExperienceCards"/>
+    :card-type="selectedTab === ETab.Experiences ? 'experience' : 'challenge'"
+    @refresh="refreshCards"/>
 </template>

@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { type FormInst, type FormRules, NModal, NForm, NFormItem, NInput, NButton, useMessage, NCard } from 'naive-ui';
-import type { ExperienceCardResponse } from '~/utils/Responses/ExperienceCardResponse';
 import { cloneDeep } from 'lodash-es'
-import type { ExperienceCardCreateRequest } from '~/utils/Requests/ExperienceCardCreateRequest';
-import type { ExperienceCardUpdateRequest } from '~/utils/Requests/ExperienceCardUpdateRequest';
+import type { CreateCardRequest } from '~/utils/Requests/CreateCardRequest';
+import type { UpdateCardRequest } from '~/utils/Requests/UpdateCardRequest';
+import type { CardResponse } from '~/utils/Responses/CardResponse';
 
 const { getUserErrorMessages } = useApiError();
 const message = useMessage();
@@ -11,8 +11,9 @@ const message = useMessage();
 const isVisible = defineModel<boolean>({required: true});
 
 const props = defineProps<{
-    card: ExperienceCardCreateRequest | ExperienceCardUpdateRequest;
+    card: CreateCardRequest | UpdateCardRequest;
     userId: string;
+    cardType: 'experience' | 'challenge';
     mode: 'edit' | 'create';
 }>();
 
@@ -22,18 +23,25 @@ const emit = defineEmits<{
 
 const isEditingMode = computed(() => props.mode === 'edit');
 const isLoading = ref<boolean>(false);
-const draftCard = ref<ExperienceCardCreateRequest | ExperienceCardUpdateRequest | null>(null);
+const draftCard = ref<CreateCardRequest | UpdateCardRequest | null>(null);
 const formRef = ref<FormInst | null>(null);
 
-watch(() => isVisible.value, (newValue) => {
-  if (newValue) {
-    draftCard.value = {
-      ...cloneDeep(props.card)
-    };
-  } else {
-    draftCard.value = null;
-  }
+const createApiMap = {
+  experience: api.createExperienceCard,
+  challenge: api.createChallengeCard
+};
+
+const updateApiMap = {
+  experience: api.updateExperienceCard,
+  challenge: api.updateChallengeCard
+};
+
+watchEffect(() => {
+  draftCard.value = isVisible.value
+    ? cloneDeep(props.card)
+    : null;
 });
+
 const rules: FormRules = {
   title: {
     required: true,
@@ -55,15 +63,15 @@ async function handleConfirmAction(event: MouseEvent) {
 
     try {
         await formRef.value?.validate();
-        let response: ExperienceCardResponse | undefined;
+        let response: CardResponse | undefined;
         if (!isEditingMode.value) {
-            response = await handleCreateExperienceCard();
+            response = await handleCreateCard();
         }
         else {
-            response = await handleUpdateExperienceCard();
+            response = await handleUpdateCard();
         }
         if (!response) throw new Error('No response from server');
-        message.success(`Experience card ${isEditingMode.value ? 'updated' : 'created'} successfully`);
+        message.success(`Card ${isEditingMode.value ? 'updated' : 'created'} successfully`);
         isLoading.value = false;
         isVisible.value = false;
         emit('refresh');
@@ -76,28 +84,20 @@ async function handleConfirmAction(event: MouseEvent) {
     }
 }
 
-async function handleCreateExperienceCard(): Promise<ExperienceCardResponse | undefined> {
-    try {
-        let response = await api.createExperienceCard(props.userId, draftCard.value as ExperienceCardCreateRequest);
-        return response;
-    } catch (error: any) {
-        const errorMessages = getUserErrorMessages(error);
-        for (const errorMessage of errorMessages) {
-            message.error(errorMessage);
-        }
-    }
+async function handleCreateCard() {
+  return createApiMap[props.cardType](
+    props.userId,
+    draftCard.value as CreateCardRequest
+  );
 }
 
-async function handleUpdateExperienceCard(): Promise<ExperienceCardResponse | undefined> {
-    try {
-        let response = await api.updateExperienceCard(props.userId, (props.card as ExperienceCardUpdateRequest).cardId, draftCard.value! as ExperienceCardUpdateRequest);
-        return response;
-    } catch (error: any) {
-        const errorMessages = getUserErrorMessages(error);
-        for (const errorMessage of errorMessages) {
-            message.error(errorMessage);
-        }
-    }
+async function handleUpdateCard() {
+  const cardId = (props.card as UpdateCardRequest).cardId;
+  return updateApiMap[props.cardType](
+    props.userId,
+    cardId,
+    draftCard.value as UpdateCardRequest
+  );
 }
 </script>
 
@@ -106,7 +106,7 @@ async function handleUpdateExperienceCard(): Promise<ExperienceCardResponse | un
         v-model:show="isVisible">
         <n-card
             style="width: 600px"
-            :title="isEditingMode ? 'Edit Experience Card' : 'Create Experience Card'"
+            :title="isEditingMode ? 'Edit Card' : 'Create Card'"
             :bordered="false"
             size="huge"
             role="dialog"

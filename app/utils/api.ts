@@ -6,9 +6,9 @@ import type { CountryResponse } from './Responses/CountryResponse'
 import type { UserUpdateRequest } from './Requests/UserUpdateRequest'
 import { ApiError, EApiErrorCode } from '~/composables/useApiError'
 import { useAuthStore } from '~/stores/authStore';
-import type { ExperienceCardResponse } from './Responses/ExperienceCardResponse'
-import type { ExperienceCardUpdateRequest } from './Requests/ExperienceCardUpdateRequest'
-import type { ExperienceCardCreateRequest } from './Requests/ExperienceCardCreateRequest'
+import type { CreateCardRequest } from './Requests/CreateCardRequest'
+import type { CardResponse } from './Responses/CardResponse'
+import type { UpdateCardRequest } from './Requests/UpdateCardRequest'
 
 const API_BASE_URL = 'http://localhost:5295/api'
 const AUTH_PREFIX = '/Auth'
@@ -145,16 +145,16 @@ export const api = {
   //#endregion
 
   //#region Experience Cards
-  async getExperienceCardsByUserId(userId: string): Promise<ExperienceCardResponse[]> {
-    return await requestJson<ExperienceCardResponse[]>(`${USERS_PREFIX}/${userId}/cards/experience`, {
+  async getExperienceCardsByUserId(userId: string): Promise<CardResponse[]> {
+    return await requestJson<CardResponse[]>(`${USERS_PREFIX}/${userId}/cards/experience`, {
       method: 'GET',
       auth: true,
       errorCode: EApiErrorCode.GET_EXPERIENCE_CARDS_FAILED,
     });
   },
 
-  async getExperienceCardById(cardId: string): Promise<ExperienceCardResponse> {
-    return await requestJson<ExperienceCardResponse>(`${USERS_PREFIX}/cards/experience/${cardId}`, {
+  async getExperienceCardById(cardId: string): Promise<CardResponse> {
+    return await requestJson<CardResponse>(`${USERS_PREFIX}/cards/experience/${cardId}`, {
       method: 'GET',
       auth: true,
       errorCode: EApiErrorCode.GET_EXPERIENCE_CARD_FAILED,
@@ -169,8 +169,8 @@ export const api = {
     });
   },
 
-  async createExperienceCard(userId: string, request: ExperienceCardCreateRequest): Promise<ExperienceCardResponse> {
-    return await requestJson<ExperienceCardResponse>(`${USERS_PREFIX}/${userId}/cards/experience`, {
+  async createExperienceCard(userId: string, request: CreateCardRequest): Promise<CardResponse> {
+    return await requestJson<CardResponse>(`${USERS_PREFIX}/${userId}/cards/experience`, {
       method: 'POST',
       auth: true,
       errorCode: EApiErrorCode.UNKNOWN_ERROR,
@@ -181,8 +181,58 @@ export const api = {
     });
   },
 
-  async updateExperienceCard(id: string, cardId: string, request: ExperienceCardUpdateRequest): Promise<ExperienceCardResponse> {
-    return await requestJson<ExperienceCardResponse>(`${USERS_PREFIX}/${id}/cards/experience/${cardId}`, {
+  async updateExperienceCard(id: string, cardId: string, request: UpdateCardRequest): Promise<CardResponse> {
+    return await requestJson<CardResponse>(`${USERS_PREFIX}/${id}/cards/experience/${cardId}`, {
+      method: 'PUT',
+      auth: true,
+      errorCode: EApiErrorCode.UNKNOWN_ERROR,
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(request),
+    });
+  }, 
+  //#endregion
+
+  //#region ChallengeCards
+  async getChallengeCardsByUserId(userId: string): Promise<CardResponse[]> {
+    return await requestJson<CardResponse[]>(`${USERS_PREFIX}/${userId}/cards/challenge`, {
+      method: 'GET',
+      auth: true,
+      errorCode: EApiErrorCode.GET_CHALLENGE_CARDS_FAILED,
+    });
+  },
+
+  async getChallengeCardById(cardId: string): Promise<CardResponse> {
+    return await requestJson<CardResponse>(`${USERS_PREFIX}/cards/challenge/${cardId}`, {
+      method: 'GET',
+      auth: true,
+      errorCode: EApiErrorCode.GET_CHALLENGE_CARD_FAILED,
+    });
+  },
+
+  async deleteChallengeCardById(userId: string, cardId: string): Promise<void> {
+    await requestJson<void>(`${USERS_PREFIX}/${userId}/cards/challenge/${cardId}`, {
+      method: 'DELETE',
+      auth: true,
+      errorCode: EApiErrorCode.UNKNOWN_ERROR,
+    });
+  },
+
+  async createChallengeCard(userId: string, request: CreateCardRequest): Promise<CardResponse> {
+    return await requestJson<CardResponse>(`${USERS_PREFIX}/${userId}/cards/challenge`, {
+      method: 'POST',
+      auth: true,
+      errorCode: EApiErrorCode.UNKNOWN_ERROR,
+      headers: {
+        'Content-Type': 'application/json',
+      }, 
+      body: JSON.stringify(request),
+    });
+  },
+
+  async updateChallengeCard(id: string, cardId: string, request: UpdateCardRequest): Promise<CardResponse> {
+    return await requestJson<CardResponse>(`${USERS_PREFIX}/${id}/cards/challenge/${cardId}`, {
       method: 'PUT',
       auth: true,
       errorCode: EApiErrorCode.UNKNOWN_ERROR,
