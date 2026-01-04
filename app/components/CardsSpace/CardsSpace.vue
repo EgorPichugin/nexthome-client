@@ -19,7 +19,7 @@ defineEmits<{
 <template>
 
 <n-space vertical size="large" style="width: 100%;">
-    <div v-if="cards && cards.length > 0">
+    <div v-if="cards && cards.length > 0" class="grid gap-4">
         <CardItem
             v-for="card in cards"
             :card="card"

@@ -14,6 +14,7 @@ const isAddCardDialogVisible = ref<boolean>(false);
 const countries = ref<CountryResponse[]>([]);
 const experienceCards = ref<CardResponse[] | null>(null);
 const challengeCards = ref<CardResponse[] | null>(null);
+const isLoading = ref<boolean>(false);
 const newCard = ref<CreateCardRequest>({
     title: '',
     description: ''
@@ -21,9 +22,11 @@ const newCard = ref<CreateCardRequest>({
 
 
 onMounted(async () => {
+    isLoading.value = true;
     countries.value = await api.fetchCountries();
     experienceCards.value = await api.getExperienceCardsByUserId(user.value.userId);
     challengeCards.value = await api.getChallengeCardsByUserId(user.value.userId);
+    isLoading.value = false;
 });
 
 const actionLabel = computed(() => {
@@ -53,17 +56,21 @@ async function handleActionClick(): Promise<void> {
   }
 }
 
+watch(selectedTab, async (newTab) => {
+    if ((newTab === ETab.Experiences) ||
+        (newTab === ETab.Challenges)) {
+        await refreshCards();
+    }
+});
+
 async function refreshCards() {
+    isLoading.value = true;
     if (selectedTab.value === ETab.Experiences) {
         experienceCards.value = await api.getExperienceCardsByUserId(user.value.userId);
     } else if (selectedTab.value === ETab.Challenges) {
         challengeCards.value = await api.getChallengeCardsByUserId(user.value.userId);
     }
-}
-
-
-async function refreshChallengeCards() {
-    challengeCards.value = await api.getChallengeCardsByUserId(user.value.userId);
+    isLoading.value = false;
 }
 </script>
 
@@ -81,7 +88,7 @@ async function refreshChallengeCards() {
             <UserProfile v-model="user" />
         </n-tab-pane>
         <n-tab-pane :name="ETab.Experiences">
-            <CardsSpace v-if="experienceCards" 
+            <CardsSpace v-if="experienceCards && !isLoading" 
               v-model="user"  
               v-model:cards="experienceCards" 
               card-type="experience"
@@ -91,11 +98,11 @@ async function refreshChallengeCards() {
             </div>
         </n-tab-pane>
         <n-tab-pane :name="ETab.Challenges">
-            <CardsSpace v-if="challengeCards" 
+            <CardsSpace v-if="challengeCards && !isLoading" 
               v-model="user" 
               v-model:cards="challengeCards" 
               card-type="challenge"
-              @refresh="refreshChallengeCards"/>
+              @refresh="refreshCards"/>
             <div v-else class="flex w-full justify-center py-8">
               <span class="text-gray-500">Loading challenge cards...</span>
             </div>

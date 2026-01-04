@@ -46,8 +46,8 @@ watch(() => isVisible.value, (newValue) => {
   }
 });
 
-async function handleConfirmAction(event: MouseEvent) {
-  event.preventDefault()
+async function handleConfirmAction(event?: Event) {
+  event?.preventDefault?.()
   if (isLoading.value || !draftUser || !draftUser.value) return
 
   isLoading.value = true
@@ -68,6 +68,19 @@ async function handleConfirmAction(event: MouseEvent) {
   } finally {
     isLoading.value = false;
   }
+}
+
+function handleEnterKeydown(event: KeyboardEvent) {
+  if (event.key !== 'Enter') return
+
+  const target = event.target as HTMLElement | null
+  const isTextArea = target?.tagName === 'TEXTAREA'
+  if (isTextArea) return
+
+  const inSelect = Boolean(target?.closest?.('.n-base-selection'))
+  if (inSelect) return
+
+  void handleConfirmAction(event)
 }
 
 async function handleEditRequest() {
@@ -150,12 +163,13 @@ const rules: FormRules = {
         role="dialog"
         aria-modal="true">
             <n-form v-if="draftUser"
-                ref="formRef"
-                :label-width="80"
-                :model="draftUser"
-                :rules="rules"
-                :size="'medium'"
-                autocomplete="off">
+              ref="formRef"
+              :label-width="80"
+              :model="draftUser"
+              :rules="rules"
+              :size="'medium'"
+              autocomplete="off"
+              @keydown="handleEnterKeydown">
 
               <div class="space-y-4">
                   <n-form-item label="Name" path="firstName"  >

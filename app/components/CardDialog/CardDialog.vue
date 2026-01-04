@@ -59,10 +59,10 @@ async function handleConfirmAction(event: MouseEvent) {
     event.preventDefault();
     if (isLoading.value || !draftCard || !draftCard.value) return;
 
-    isLoading.value = true;
-
+    
     try {
         await formRef.value?.validate();
+        isLoading.value = true;
         let response: CardResponse | undefined;
         if (!isEditingMode.value) {
             response = await handleCreateCard();
@@ -112,18 +112,16 @@ async function handleUpdateCard() {
             role="dialog"
             aria-modal="true">
                 <n-form v-if="draftCard"
-                    ref="formRef"
-                    :label-width="80"
-                    :model="draftCard"
-                    :rules="rules"
-                    :size="'medium'"
-                    autocomplete="off">
-
+                  ref="formRef"
+                  :label-width="80"
+                  :model="draftCard"
+                  :rules="rules"
+                  :size="'medium'"
+                  autocomplete="off">
                     <div class="space-y-4">
                         <n-form-item label="Title" path="title">
                             <n-input v-model:value="draftCard.title" placeholder="Enter title" />
                         </n-form-item>
-
                         <n-form-item label="Description" path="description">
                             <n-input
                                 type="textarea"

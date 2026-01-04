@@ -87,7 +87,7 @@ async function findExperienceCards() {
               <n-button size="small" type="error" :loading="isLoading" secondary @click="handleDeleteCardAction">
                 Delete
               </n-button>
-              <n-button size="small" type="primary" :loading="isLoading" secondary @click="findExperienceCards">
+              <n-button v-if="props.cardType === 'challenge'" size="small" type="primary" :loading="isLoading" secondary @click="findExperienceCards">
                 Find Experiences
               </n-button>
           </div>

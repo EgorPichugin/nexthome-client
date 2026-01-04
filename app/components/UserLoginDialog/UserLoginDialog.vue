@@ -23,16 +23,14 @@ const loginRequest = ref<UserLoginRequest>({
 const formRef = ref<FormInst | null>(null);
 const isLoading = ref<boolean>(false);
 
-async function handleConfirmAction(event: MouseEvent) {
-  event.preventDefault()
+async function handleConfirmAction(event?: Event) {
+  event?.preventDefault?.()
   if (isLoading.value) return
-
-  isLoading.value = true
-
+  
   try {
     await formRef.value?.validate()
+    isLoading.value = true
     await login(loginRequest.value)
-
     message.success('Login successfully')
     isVisible.value = false
   } catch (error: any) {
@@ -53,6 +51,19 @@ watch(() => isVisible.value, (newValue) => {
   loginRequest.value.password = ''
 }
 });
+
+function handleEnterKeydown(event: KeyboardEvent) {
+  if (event.key !== 'Enter') return
+
+  const target = event.target as HTMLElement | null
+  const isTextArea = target?.tagName === 'TEXTAREA'
+  if (isTextArea) return
+
+  const inSelect = Boolean(target?.closest?.('.n-base-selection'))
+  if (inSelect) return
+
+  void handleConfirmAction(event)
+}
 
 const rules: FormRules = {
   password: {
@@ -79,11 +90,13 @@ const rules: FormRules = {
         role="dialog"
         aria-modal="true">
         <n-form
-            ref="formRef"
-            :label-width="80"
+          ref="formRef"
+          :label-width="80"
           :model="loginRequest"
-            :rules="rules"
-            :size="'medium'">
+          :rules="rules"
+          :size="'medium'"
+          autocomplete="off"
+          @keydown="handleEnterKeydown">
           <div class="space-y-4">
             <n-form-item label="Email" path="email">
               <n-input v-model:value="loginRequest.email" :disabled="isLoading" placeholder="Input Email" class="w-full" />
