@@ -1,10 +1,12 @@
 <script setup lang="ts">
-import { NCard, NTabs, NTabPane, NButton } from 'naive-ui';
+import { NCard, NTabs, NTabPane, NButton, NSpin } from 'naive-ui';
 import { type UserResponse } from '~/utils/Responses/UserResponse';
 import { ETab } from './ETab';
 import { type CountryResponse } from '~/utils/Responses/CountryResponse';
 import type { CardResponse } from '~/utils/Responses/CardResponse';
 import type { CreateCardRequest } from '~/utils/Requests/CreateCardRequest';
+import type { GetSimilarCardsRequest } from '~/utils/Requests/GetSimilarCardsRequest';
+import SimilarCardsDialog from '../SimilarCardsDialog/SimilarCardsDialog.vue';
 
 const user = defineModel<UserResponse>({required: true});
 
@@ -15,10 +17,12 @@ const countries = ref<CountryResponse[]>([]);
 const experienceCards = ref<CardResponse[] | null>(null);
 const challengeCards = ref<CardResponse[] | null>(null);
 const isLoading = ref<boolean>(false);
-const newCard = ref<CreateCardRequest>({
+  const newCard = ref<CreateCardRequest>({
     title: '',
     description: ''
-});
+  });
+const similarExperienceCards = ref<CardResponse[] | null>(null);
+const isSimilarCardsDialogVisible = ref<boolean>(false);
 
 
 onMounted(async () => {
@@ -72,6 +76,17 @@ async function refreshCards() {
     }
     isLoading.value = false;
 }
+
+async function handleFindSimilarCards(challengeCardId: string) {
+    isLoading.value = true;
+    const request: GetSimilarCardsRequest = {
+        userId: user.value.userId,
+        challengeCardId: challengeCardId
+    };
+    similarExperienceCards.value = await api.searchSimilarCards(request);
+    isLoading.value = false;
+    isSimilarCardsDialogVisible.value = true;
+}
 </script>
 
 <template>
@@ -84,29 +99,30 @@ async function refreshCards() {
     pane-style="padding: 20px;"
     :animated="true"
     justify-content="center">
-        <n-tab-pane :name="ETab.Profile">
-            <UserProfile v-model="user" />
-        </n-tab-pane>
-        <n-tab-pane :name="ETab.Experiences">
-            <CardsSpace v-if="experienceCards && !isLoading" 
-              v-model="user"  
-              v-model:cards="experienceCards" 
-              card-type="experience"
-              @refresh="refreshCards"/>
-            <div v-else class="flex w-full justify-center py-8">
-              <span class="text-gray-500">Loading experience cards...</span>
-            </div>
-        </n-tab-pane>
-        <n-tab-pane :name="ETab.Challenges">
-            <CardsSpace v-if="challengeCards && !isLoading" 
-              v-model="user" 
-              v-model:cards="challengeCards" 
-              card-type="challenge"
-              @refresh="refreshCards"/>
-            <div v-else class="flex w-full justify-center py-8">
-              <span class="text-gray-500">Loading challenge cards...</span>
-            </div>
-        </n-tab-pane>
+      <n-tab-pane :name="ETab.Profile">
+          <UserProfile v-model="user" />
+      </n-tab-pane>
+      <n-tab-pane :name="ETab.Experiences">
+        <CardsSpace v-if="experienceCards && !isLoading" 
+          v-model="user"  
+          v-model:cards="experienceCards" 
+          card-type="experience"
+          @refresh="refreshCards"/>
+        <div v-else class="flex w-full justify-center py-8">
+          <n-spin size="large" description="Loading experience cards..." />
+        </div>
+      </n-tab-pane>
+      <n-tab-pane :name="ETab.Challenges">
+        <CardsSpace v-if="challengeCards && !isLoading" 
+          v-model="user" 
+          v-model:cards="challengeCards" 
+          card-type="challenge"
+          @refresh="refreshCards"
+          @similar="handleFindSimilarCards"/>
+        <div v-else class="flex w-full justify-center py-8">
+          <n-spin size="large" description="Loading challenge cards..." />
+        </div>
+      </n-tab-pane>
     </n-tabs>
 
     <template #footer>
@@ -131,4 +147,9 @@ async function refreshCards() {
     :mode="'create'"
     :card-type="selectedTab === ETab.Experiences ? 'experience' : 'challenge'"
     @refresh="refreshCards"/>
+
+  <SimilarCardsDialog v-if="similarExperienceCards"
+    v-model="isSimilarCardsDialogVisible"
+    v-model:cards="similarExperienceCards"
+    v-model:user="user"/>
 </template>

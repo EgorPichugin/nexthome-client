@@ -12,6 +12,10 @@ export const useAuthStore = defineStore('auth', () => {
   async function login(request: UserLoginRequest) {
     const data: UserLoginResponse = await api.loginUser(request);
 
+    if (data.user.isEmailConfirmed === false) {
+      throw new Error('Email is not confirmed. Please confirm your email before logging in.');
+    }
+
     accessToken.value = data.accessToken
     currentUser.value = data.user
   }

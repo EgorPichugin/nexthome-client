@@ -9,12 +9,14 @@ import { useAuthStore } from '~/stores/authStore';
 import type { CreateCardRequest } from './Requests/CreateCardRequest'
 import type { CardResponse } from './Responses/CardResponse'
 import type { UpdateCardRequest } from './Requests/UpdateCardRequest'
+import type { GetSimilarCardsRequest } from './Requests/GetSimilarCardsRequest'
 
-// const API_BASE_URL = 'http://localhost:5295/api'
-const API_BASE_URL = 'https://nexthome-api-production.up.railway.app/api'
-const AUTH_PREFIX = '/Auth'
-const USERS_PREFIX = '/Users'
-const COUNTRIES_PREFIX = '/Countries'
+// const API_BASE_URL = 'http://localhost:5295/api';
+const API_BASE_URL = 'https://nexthome-api-production.up.railway.app/api';
+const AUTH_PREFIX = '/Auth';
+const USERS_PREFIX = '/Users';
+const COUNTRIES_PREFIX = '/Countries';
+const COLLECTIONS_PREFIX = '/Collections';
 
 function withAuthHeaders(
   headers: Record<string, string> = {}
@@ -48,14 +50,8 @@ async function requestJson<T>(
   const { auth = true, errorCode = EApiErrorCode.UNKNOWN_ERROR, ...fetchInit } = init
 
   const headers: Record<string, string> = {
-    'ngrok-skip-browser-warning': 'true',
     ...(fetchInit.headers as Record<string, string> | undefined),
   }
-
-  //TODO: Remove above line and use below line when not using ngrok
-  // const headers: Record<string, string> = {
-  //   ...(fetchInit.headers as Record<string, string> | undefined),
-  // }
 
   const finalHeaders = auth ? withAuthHeaders(headers) : headers
 
@@ -249,12 +245,26 @@ export const api = {
       body: JSON.stringify(request),
     });
   }, 
+
+  //#endregion
+  //#region Collections
+  async searchSimilarCards(request: GetSimilarCardsRequest): Promise<CardResponse[]> {
+    return await requestJson<CardResponse[]>(`${COLLECTIONS_PREFIX}/cards/similar`, {
+      method: 'POST',
+      auth: true,
+      errorCode: EApiErrorCode.UNKNOWN_ERROR,
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(request),
+    });
+  },
   //#endregion
   //#endregion
 
   //#region Countries Controller
   async fetchCountries(): Promise<CountryResponse[]> {
-    return await requestJson<CountryResponse[]>('/Countries', {
+    return await requestJson<CountryResponse[]>(`${COUNTRIES_PREFIX}`, {
       method: 'GET',
       auth: false,
       errorCode: EApiErrorCode.GET_COUNTRIES_FAILED,

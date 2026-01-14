@@ -13,4 +13,5 @@ export interface UserResponse {
   city: string;
   status?: EStatus | null;
   immigrationDate?: Date | null;
+  isEmailConfirmed: boolean;
 }
