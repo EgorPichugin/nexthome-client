@@ -76,11 +76,16 @@ async function handleConfirmAction(event: MouseEvent) {
         isVisible.value = false;
         emit('refresh');
     } catch (error: any) {
-        if (Array.isArray(error)) return
-        const errorMessages = getUserErrorMessages(error);
-        for (const errorMessage of errorMessages) {
-            message.error(errorMessage);
+        if (Array.isArray(error)) {
+            // Validation errors - form will show them
+        } else {
+            const errorMessages = getUserErrorMessages(error);
+            for (const errorMessage of errorMessages) {
+                message.error(errorMessage);
+            }
         }
+    } finally {
+        isLoading.value = false;
     }
 }
 

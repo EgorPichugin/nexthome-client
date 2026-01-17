@@ -10,6 +10,7 @@
     "postinstall": "nuxt prepare"
   },
   "dependencies": {
+    "@auth0/auth0-vue": "^2.5.0",
     "@pinia/nuxt": "^0.11.3",
     "@vueuse/core": "^14.1.0",
     "naive-ui": "^2.43.2",

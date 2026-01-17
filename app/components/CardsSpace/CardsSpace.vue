@@ -34,7 +34,7 @@ defineEmits<{
         />
     </div>
     <div v-else class="flex w-full justify-center py-8">
-      <span class="text-gray-500">You have not added any cards yet.</span>
+      <span class="text-gray-1000">You have not added any cards yet.</span>
     </div>
 </n-space>
 

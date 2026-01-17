@@ -3,7 +3,7 @@ import { NCard, NGrid, NGi, NText, NThing } from 'naive-ui'
 </script>
 
 <template>
-	<div class="space-y-4">
+	<div class="max-w-5xl mx-auto space-y-4 px-4">
 		<div>
 			<n-text strong>
 				Welcome to NextHome
@@ -29,7 +29,7 @@ import { NCard, NGrid, NGi, NText, NThing } from 'naive-ui'
 			</n-gi>
 
 			<n-gi>
-				<n-card title="My pain point">
+				<n-card title="My challenge">
 					<n-thing>
 						<template #description>
 							Describe your problem or struggle. NextHome helps you find answers based on experiences

@@ -1,15 +1,8 @@
 <script setup lang="ts">
 import { NAvatar, NCard, NDescriptions, NDescriptionsItem, NSpace, NText } from 'naive-ui';
-import { EStatus, type UserResponse } from '~/utils/Responses/UserResponse';
+import { type UserResponse } from '~/utils/Responses/UserResponse';
 
 const user = defineModel<UserResponse>({required: true});
-const statusLabel = computed(() => {
-  if (user.value?.status === null || user.value?.status === undefined) {
-    return '—'
-  }
-
-  return EStatus[user.value.status]
-});
 
 const fullName = computed(() => {
     const first = user.value?.firstName?.trim() ?? ''
@@ -70,9 +63,6 @@ const fullName = computed(() => {
                     </n-descriptions-item>
                     <n-descriptions-item label="City">
                         {{ user.city || '—' }}
-                    </n-descriptions-item>
-                    <n-descriptions-item v-if="user.status" label="Status">
-                        {{ statusLabel }}
                     </n-descriptions-item>
                 </n-descriptions>
             </div>

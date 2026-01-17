@@ -20,7 +20,7 @@ watch(() => isVisible.value, (newValue) => {
         v-model:show="isVisible">
         <n-card
             style="width: 1000px"
-            :title="'Found experience cards similar to your challenge card'"
+            :title="'Found similar experience cards'"
             :bordered="false"
             size="huge"
             role="dialog"

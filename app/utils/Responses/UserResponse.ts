@@ -1,9 +1,3 @@
-export enum EStatus {
-  Student = 1,
-  Employer = 2,
-  Other = 3,
-}
-
 export interface UserResponse {
   userId: string;
   email: string;
@@ -11,7 +5,5 @@ export interface UserResponse {
   lastName: string;
   country: string;
   city: string;
-  status?: EStatus | null;
-  immigrationDate?: Date | null;
-  isEmailConfirmed: boolean;
+  isCompleted: boolean;
 }

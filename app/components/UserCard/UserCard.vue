@@ -10,24 +10,23 @@ import SimilarCardsDialog from '../SimilarCardsDialog/SimilarCardsDialog.vue';
 
 const user = defineModel<UserResponse>({required: true});
 
-const selectedTab = ref<ETab>(ETab.Profile);
+const selectedTab = useState<ETab>('userCardTab', () => ETab.Profile);
 const isUserEditDialogVisible = ref<boolean>(false);
 const isAddCardDialogVisible = ref<boolean>(false);
 const countries = ref<CountryResponse[]>([]);
 const experienceCards = ref<CardResponse[] | null>(null);
 const challengeCards = ref<CardResponse[] | null>(null);
 const isLoading = ref<boolean>(false);
-  const newCard = ref<CreateCardRequest>({
-    title: '',
-    description: ''
-  });
+const newCard = ref<CreateCardRequest>({
+  title: '',
+  description: ''
+});
 const similarExperienceCards = ref<CardResponse[] | null>(null);
 const isSimilarCardsDialogVisible = ref<boolean>(false);
 
 
 onMounted(async () => {
     isLoading.value = true;
-    countries.value = await api.fetchCountries();
     experienceCards.value = await api.getExperienceCardsByUserId(user.value.userId);
     challengeCards.value = await api.getChallengeCardsByUserId(user.value.userId);
     isLoading.value = false;
@@ -44,7 +43,7 @@ const actionLabel = computed(() => {
     default:
       return ''
   }
-})
+});
 
 async function handleActionClick(): Promise<void> {
   switch (selectedTab.value) {
@@ -90,7 +89,7 @@ async function handleFindSimilarCards(challengeCardId: string) {
 </script>
 
 <template>
-  <n-card content-style="padding: 0;">
+  <n-card content-style="padding: 0;" class="max-w-5xl mx-auto space-y-4 px-4">
     <n-tabs
     v-model:value="selectedTab"
     type="segment"
@@ -108,9 +107,7 @@ async function handleFindSimilarCards(challengeCardId: string) {
           v-model:cards="experienceCards" 
           card-type="experience"
           @refresh="refreshCards"/>
-        <div v-else class="flex w-full justify-center py-8">
-          <n-spin size="large" description="Loading experience cards..." />
-        </div>
+          <SpinLoader v-else class="flex w-full justify-center py-8"/>
       </n-tab-pane>
       <n-tab-pane :name="ETab.Challenges">
         <CardsSpace v-if="challengeCards && !isLoading" 
@@ -119,9 +116,7 @@ async function handleFindSimilarCards(challengeCardId: string) {
           card-type="challenge"
           @refresh="refreshCards"
           @similar="handleFindSimilarCards"/>
-        <div v-else class="flex w-full justify-center py-8">
-          <n-spin size="large" description="Loading challenge cards..." />
-        </div>
+          <SpinLoader v-else class="flex w-full justify-center py-8"/>
       </n-tab-pane>
     </n-tabs>
 
