@@ -6,6 +6,7 @@ import type { CreateCardRequest } from './Requests/CreateCardRequest'
 import type { CardResponse } from './Responses/CardResponse'
 import type { UpdateCardRequest } from './Requests/UpdateCardRequest'
 import type { GetSimilarCardsRequest } from './Requests/GetSimilarCardsRequest'
+import type { UpdateProfileAvatarRequest } from './Requests/UpdateProfileAvatartRequest'
 
 const API_BASE_URL = 'http://localhost:5295/api';
 // const API_BASE_URL = 'https://nexthome-api-production.up.railway.app/api';
@@ -92,6 +93,19 @@ export const api = {
     });
   },
 
+  async updateUserAvatar(userId: string, request: UpdateProfileAvatarRequest): Promise<UserResponse> {
+    let response = await requestAuth<UserResponse>(`${USERS_PREFIX}/${userId}/avatar`, {
+      method: 'PUT',
+      errorCode: EApiErrorCode.UNKNOWN_ERROR,
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(request),
+    });
+
+    return response;
+  },
+
   async updateUser(
     userId: string,
     request: UserUpdateRequest,
@@ -113,6 +127,23 @@ export const api = {
       method: 'GET',
       errorCode: EApiErrorCode.GET_USER_FAILED,
     });
+  },
+  //#endregion
+  
+  //#region Cloudinary
+  async uploadToCloudinary(file: File): Promise<string> {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('upload_preset', useRuntimeConfig().public.cloudinaryUploadPreset as string);
+    
+    const cloudName = useRuntimeConfig().public.cloudinaryCloudName as string;
+    const response = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
+        method: 'POST',
+        body: formData
+    });
+
+    const data = await response.json();
+    return data.secure_url;
   },
   //#endregion
 
