@@ -1,15 +1,13 @@
 <script setup lang="ts">
-import { NAvatar, NCard, NDescriptions, NDescriptionsItem, NSpace, NText } from 'naive-ui';
-import { EStatus, type UserResponse } from '~/utils/Responses/UserResponse';
+import { NAvatar, NCard, NDescriptions, NDescriptionsItem, NSpace, NText, NUpload, useMessage, type UploadFileInfo, type UploadInst } from 'naive-ui';
+import { type UserResponse } from '~/utils/Responses/UserResponse';
 
 const user = defineModel<UserResponse>({required: true});
-const statusLabel = computed(() => {
-  if (user.value?.status === null || user.value?.status === undefined) {
-    return '—'
-  }
+const message = useMessage();
+const isUploading = ref(false);
+const uploadRef = ref<UploadInst | null>(null);
 
-  return EStatus[user.value.status]
-});
+const avatarUrl = computed<string>(() => user.value?.avatarUrl ?? '/images/profile_picture.jpg')
 
 const fullName = computed(() => {
     const first = user.value?.firstName?.trim() ?? ''
@@ -17,6 +15,32 @@ const fullName = computed(() => {
     const name = `${first} ${last}`.trim()
     return name || 'User'
 })
+
+async function handleUploadChange(options: { fileList: UploadFileInfo[] }) {
+    const file = options.fileList[0];
+    if (!file?.file) return;
+
+    
+    const loadingMsg = message.loading('Uploading avatar...', { duration: 0 });
+    try {
+        isUploading.value = true;
+        const cloudinaryUrl = await api.uploadToCloudinary(file.file);
+        
+        if (user.value) {
+            user.value = await api.updateUserAvatar(user.value.userId, { avatarUrl: cloudinaryUrl });
+            loadingMsg.destroy();
+            message.success('Avatar updated successfully');
+        }
+    } catch (error) {
+        console.error('Upload error:', error);
+        loadingMsg.destroy();
+        message.error('Failed to upload avatar');
+    } finally {
+        uploadRef.value?.clear();
+        isUploading.value = false;
+    }
+}
+
 </script>
 
 <template>
@@ -24,11 +48,20 @@ const fullName = computed(() => {
         <div class="profile-layout">
             <div class="profile-left">
                 <n-space vertical :align="'center'" size="small">
-                    <n-avatar
-                        round
-                        :size="110"
-                        src="/images/profile_picture.jpg"
-                    />
+                    <n-upload
+                        ref="uploadRef"
+                        :max="1"
+                        :show-file-list="false"
+                        :disabled="isUploading"
+                        accept="image/*"
+                        @change="handleUploadChange">
+                        <n-avatar
+                            round
+                            :size="110"
+                            :src="avatarUrl"
+                            :style="{ cursor: isUploading ? 'not-allowed' : 'pointer', opacity: isUploading ? 0.6 : 1 }"
+                            />
+                    </n-upload>
 
                     <n-text strong>
                         {{ fullName }}
@@ -70,9 +103,6 @@ const fullName = computed(() => {
                     </n-descriptions-item>
                     <n-descriptions-item label="City">
                         {{ user.city || '—' }}
-                    </n-descriptions-item>
-                    <n-descriptions-item v-if="user.status" label="Status">
-                        {{ statusLabel }}
                     </n-descriptions-item>
                 </n-descriptions>
             </div>

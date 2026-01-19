@@ -1,34 +1,18 @@
 import { type UserResponse } from '~/utils/Responses/UserResponse'
-import { type UserLoginResponse } from '~/utils/Responses/UserLoginResponse'
-import { type UserLoginRequest } from '~/utils/Requests/UserLoginRequest'
-import { type UserRegisterRequest } from '~/utils/Requests/UserRegisterRequest'
 import type { CountryResponse } from './Responses/CountryResponse'
 import type { UserUpdateRequest } from './Requests/UserUpdateRequest'
 import { ApiError, EApiErrorCode } from '~/composables/useApiError'
-import { useAuthStore } from '~/stores/authStore';
 import type { CreateCardRequest } from './Requests/CreateCardRequest'
 import type { CardResponse } from './Responses/CardResponse'
 import type { UpdateCardRequest } from './Requests/UpdateCardRequest'
+import type { GetSimilarCardsRequest } from './Requests/GetSimilarCardsRequest'
+import type { UpdateProfileAvatarRequest } from './Requests/UpdateProfileAvatartRequest'
 
-// const API_BASE_URL = 'http://localhost:5295/api'
-const API_BASE_URL = 'https://nexthome-api-production.up.railway.app/api'
-const AUTH_PREFIX = '/Auth'
-const USERS_PREFIX = '/Users'
-const COUNTRIES_PREFIX = '/Countries'
-
-function withAuthHeaders(
-  headers: Record<string, string> = {}
-): Record<string, string> {
-  const authStore = useAuthStore()
-
-  if (!authStore.accessToken) return headers
-
-  return {
-    ...headers,
-    Authorization: `Bearer ${authStore.accessToken}`,
-  }
-}
-
+// const API_BASE_URL = 'http://localhost:5295/api';
+const API_BASE_URL = 'https://nexthome-api-production.up.railway.app/api';
+const USERS_PREFIX = '/Users';
+const COUNTRIES_PREFIX = '/Countries';
+const COLLECTIONS_PREFIX = '/Collections';
 
 async function parseJsonSafe(response: Response): Promise<unknown> {
   const contentType = response.headers.get('content-type') ?? ''
@@ -41,33 +25,41 @@ async function parseJsonSafe(response: Response): Promise<unknown> {
   }
 }
 
-async function requestJson<T>(
+export function requestPublic<T>(
   path: string,
-  init: RequestInit & { auth?: boolean; errorCode?: EApiErrorCode } = {}
+  options: RequestInit & { errorCode?: EApiErrorCode } = {}
+) {
+  return sendRequest<T>(path, options);
+}
+
+export function requestAuth<T>(
+  path: string,
+  options: RequestInit & { errorCode?: EApiErrorCode } = {}
+) {
+  const { getApiToken } = useApiToken();
+  const token = getApiToken();
+  return sendRequest<T>(path, { ...options, token });
+}
+
+async function sendRequest<T>(
+  path: string,
+  {
+    token,
+    errorCode = EApiErrorCode.UNKNOWN_ERROR,
+    headers = {},
+    ...fetchInit
+  }: RequestInit & { token?: string; errorCode?: EApiErrorCode } = {}
 ): Promise<T> {
-  const { auth = true, errorCode = EApiErrorCode.UNKNOWN_ERROR, ...fetchInit } = init
 
-  const headers: Record<string, string> = {
-    'ngrok-skip-browser-warning': 'true',
-    ...(fetchInit.headers as Record<string, string> | undefined),
+  const finalHeaders: Record<string, string> = {
+    ...(headers as Record<string, string>),
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
   }
 
-  //TODO: Remove above line and use below line when not using ngrok
-  // const headers: Record<string, string> = {
-  //   ...(fetchInit.headers as Record<string, string> | undefined),
-  // }
-
-  const finalHeaders = auth ? withAuthHeaders(headers) : headers
-
-  let response: Response
-  try {
-    response = await fetch(`${API_BASE_URL}${path}`, {
-      ...fetchInit,
-      headers: finalHeaders,
-    });
-  } catch (error) {
-    throw new ApiError(EApiErrorCode.NETWORK_ERROR, undefined, error);
-  }
+  const response = await fetch(`${API_BASE_URL}${path}`, {
+    ...fetchInit,
+    headers: finalHeaders,
+  })
 
   const data = await parseJsonSafe(response)
 
@@ -84,62 +76,26 @@ async function requestJson<T>(
   }
 
   if (!response.ok) {
-    throw new ApiError(errorCode, response.status, data);
+    throw new ApiError(errorCode, response.status, data)
   }
 
   return data as T
 }
 
+
 export const api = {
-  //#region Auth Controller
-  async registerUser(
-    request: UserRegisterRequest
-  ): Promise<UserResponse> {
-    return await requestJson<UserResponse>(`${AUTH_PREFIX}/register`, {
-      method: 'POST',
-      auth: false,
-      errorCode: EApiErrorCode.REGISTER_FAILED,
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(request),
-    })
-  },
-
-  async loginUser(
-    request: UserLoginRequest
-  ): Promise<UserLoginResponse> {
-    let response = await requestJson<UserLoginResponse>(`${AUTH_PREFIX}/login`, {
-      method: 'POST',
-      auth: false,
-      errorCode: EApiErrorCode.LOGIN_FAILED,
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(request),
-    })
-
-    return response
-  },
-  //#endregion
-
   //#region Users Controller
   //#region Users
   async getAllUsers(): Promise<UserResponse[]> {
-    return await requestJson<UserResponse[]>(`${USERS_PREFIX}`, {
+    return await requestAuth<UserResponse[]>(`${USERS_PREFIX}`, {
       method: 'GET',
-      auth: true,
       errorCode: EApiErrorCode.GET_USERS_FAILED,
     });
   },
 
-  async updateUser(
-    userId: string,
-    request: UserUpdateRequest
-  ): Promise<UserResponse> {
-    let response = await requestJson<UserResponse>(`${USERS_PREFIX}/${userId}`, {
+  async updateUserAvatar(userId: string, request: UpdateProfileAvatarRequest): Promise<UserResponse> {
+    let response = await requestAuth<UserResponse>(`${USERS_PREFIX}/${userId}/avatar`, {
       method: 'PUT',
-      auth: true,
       errorCode: EApiErrorCode.UNKNOWN_ERROR,
       headers: {
         'Content-Type': 'application/json',
@@ -149,37 +105,73 @@ export const api = {
 
     return response;
   },
+
+  async updateUser(
+    userId: string,
+    request: UserUpdateRequest,
+  ): Promise<UserResponse> {
+    let response = await requestAuth<UserResponse>(`${USERS_PREFIX}/${userId}`, {
+      method: 'PUT',
+      errorCode: EApiErrorCode.UNKNOWN_ERROR,
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(request),
+    });
+
+    return response;
+  },
+
+  async getMe(): Promise<UserResponse> {
+    return await requestAuth<UserResponse>(`${USERS_PREFIX}/me`, {
+      method: 'GET',
+      errorCode: EApiErrorCode.GET_USER_FAILED,
+    });
+  },
+  //#endregion
+  
+  //#region Cloudinary
+  async uploadToCloudinary(file: File): Promise<string> {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('upload_preset', useRuntimeConfig().public.cloudinaryUploadPreset as string);
+    
+    const cloudName = useRuntimeConfig().public.cloudinaryCloudName as string;
+    const response = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
+        method: 'POST',
+        body: formData
+    });
+
+    const data = await response.json();
+    return data.secure_url;
+  },
   //#endregion
 
   //#region Experience Cards
   async getExperienceCardsByUserId(userId: string): Promise<CardResponse[]> {
-    return await requestJson<CardResponse[]>(`${USERS_PREFIX}/${userId}/cards/experience`, {
+    return await requestAuth<CardResponse[]>(`${USERS_PREFIX}/${userId}/cards/experience`, {
       method: 'GET',
-      auth: true,
       errorCode: EApiErrorCode.GET_EXPERIENCE_CARDS_FAILED,
     });
   },
 
   async getExperienceCardById(cardId: string): Promise<CardResponse> {
-    return await requestJson<CardResponse>(`${USERS_PREFIX}/cards/experience/${cardId}`, {
+    return await requestAuth<CardResponse>(`${USERS_PREFIX}/cards/experience/${cardId}`, {
       method: 'GET',
-      auth: true,
       errorCode: EApiErrorCode.GET_EXPERIENCE_CARD_FAILED,
     });
   },
 
   async deleteExperienceCardById(userId: string, cardId: string): Promise<void> {
-    await requestJson<void>(`${USERS_PREFIX}/${userId}/cards/experience/${cardId}`, {
+    await requestAuth<void>(`${USERS_PREFIX}/${userId}/cards/experience/${cardId}`, {
       method: 'DELETE',
-      auth: true,
       errorCode: EApiErrorCode.UNKNOWN_ERROR,
     });
   },
 
   async createExperienceCard(userId: string, request: CreateCardRequest): Promise<CardResponse> {
-    return await requestJson<CardResponse>(`${USERS_PREFIX}/${userId}/cards/experience`, {
+    return await requestAuth<CardResponse>(`${USERS_PREFIX}/${userId}/cards/experience`, {
       method: 'POST',
-      auth: true,
       errorCode: EApiErrorCode.UNKNOWN_ERROR,
       headers: {
         'Content-Type': 'application/json',
@@ -189,74 +181,80 @@ export const api = {
   },
 
   async updateExperienceCard(id: string, cardId: string, request: UpdateCardRequest): Promise<CardResponse> {
-    return await requestJson<CardResponse>(`${USERS_PREFIX}/${id}/cards/experience/${cardId}`, {
+    return await requestAuth<CardResponse>(`${USERS_PREFIX}/${id}/cards/experience/${cardId}`, {
       method: 'PUT',
-      auth: true,
       errorCode: EApiErrorCode.UNKNOWN_ERROR,
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(request),
     });
-  }, 
+  },
   //#endregion
 
   //#region ChallengeCards
   async getChallengeCardsByUserId(userId: string): Promise<CardResponse[]> {
-    return await requestJson<CardResponse[]>(`${USERS_PREFIX}/${userId}/cards/challenge`, {
+    return await requestAuth<CardResponse[]>(`${USERS_PREFIX}/${userId}/cards/challenge`, {
       method: 'GET',
-      auth: true,
       errorCode: EApiErrorCode.GET_CHALLENGE_CARDS_FAILED,
     });
   },
 
   async getChallengeCardById(cardId: string): Promise<CardResponse> {
-    return await requestJson<CardResponse>(`${USERS_PREFIX}/cards/challenge/${cardId}`, {
+    return await requestAuth<CardResponse>(`${USERS_PREFIX}/cards/challenge/${cardId}`, {
       method: 'GET',
-      auth: true,
       errorCode: EApiErrorCode.GET_CHALLENGE_CARD_FAILED,
     });
   },
 
   async deleteChallengeCardById(userId: string, cardId: string): Promise<void> {
-    await requestJson<void>(`${USERS_PREFIX}/${userId}/cards/challenge/${cardId}`, {
+    await requestAuth<void>(`${USERS_PREFIX}/${userId}/cards/challenge/${cardId}`, {
       method: 'DELETE',
-      auth: true,
       errorCode: EApiErrorCode.UNKNOWN_ERROR,
     });
   },
 
   async createChallengeCard(userId: string, request: CreateCardRequest): Promise<CardResponse> {
-    return await requestJson<CardResponse>(`${USERS_PREFIX}/${userId}/cards/challenge`, {
+    return await requestAuth<CardResponse>(`${USERS_PREFIX}/${userId}/cards/challenge`, {
       method: 'POST',
-      auth: true,
-      errorCode: EApiErrorCode.UNKNOWN_ERROR,
-      headers: {
-        'Content-Type': 'application/json',
-      }, 
-      body: JSON.stringify(request),
-    });
-  },
-
-  async updateChallengeCard(id: string, cardId: string, request: UpdateCardRequest): Promise<CardResponse> {
-    return await requestJson<CardResponse>(`${USERS_PREFIX}/${id}/cards/challenge/${cardId}`, {
-      method: 'PUT',
-      auth: true,
       errorCode: EApiErrorCode.UNKNOWN_ERROR,
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(request),
     });
-  }, 
+  },
+
+  async updateChallengeCard(id: string, cardId: string, request: UpdateCardRequest): Promise<CardResponse> {
+    return await requestAuth<CardResponse>(`${USERS_PREFIX}/${id}/cards/challenge/${cardId}`, {
+      method: 'PUT',
+      errorCode: EApiErrorCode.UNKNOWN_ERROR,
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(request),
+    });
+  },
+
+  //#endregion
+  //#region Collections
+  async searchSimilarCards(request: GetSimilarCardsRequest): Promise<CardResponse[]> {
+    return await requestAuth<CardResponse[]>(`${COLLECTIONS_PREFIX}/cards/similar`, {
+      method: 'POST',
+      errorCode: EApiErrorCode.UNKNOWN_ERROR,
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(request),
+    });
+  },
   //#endregion
   //#endregion
 
   //#region Countries Controller
   async fetchCountries(): Promise<CountryResponse[]> {
-    return await requestJson<CountryResponse[]>('/Countries', {
+    return await requestAuth<CountryResponse[]>(`${COUNTRIES_PREFIX}`, {
       method: 'GET',
-      auth: false,
       errorCode: EApiErrorCode.GET_COUNTRIES_FAILED,
     });
   },

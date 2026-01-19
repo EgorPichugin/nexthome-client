@@ -5,6 +5,4 @@ export interface UserUpdateRequest {
     lastName: string;
     country: string;
     city: string;
-    status?: number | null;
-    immigrationDate?: Date | null;
 }

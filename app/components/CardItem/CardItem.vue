@@ -8,9 +8,10 @@ import type { CardResponse } from '~/utils/Responses/CardResponse';
 const message = useMessage();
 
 const props = defineProps<{
-    cardType: 'experience' | 'challenge',
-    card: CardResponse,
-    userId: string
+  cardType: 'experience' | 'challenge';
+  card: CardResponse;
+  userId: string;
+  readonly?: boolean;
 }>();
 
 const expanded = ref<boolean>(false)
@@ -26,6 +27,7 @@ const shortDescription = computed(() => {
 
 const emit = defineEmits<{
   (event: 'refresh'): void;
+  (event: 'similar', challengeCardId: string): void;
 }>();
 
 function handleEditCardAction() {
@@ -45,9 +47,10 @@ async function handleDeleteCardAction() {
 }
 
 async function findExperienceCards() {
-  console.log('Finding experience cards...');
-  //TODO: Implement the logic to find experience cards here
+  emit('similar', props.card.cardId);
 }
+
+const isReadOnly = computed(() => Boolean(props.readonly))
 </script>
 
 <template>
@@ -69,34 +72,45 @@ async function findExperienceCards() {
 
       <template #footer>
           <div class="experience-card-footer">
-          <n-button
+            <n-button
               v-if="card.description.length > 150"
               text
               type="primary"
               size="small"
               class="experience-card-showmore"
-              @click="expanded = !expanded"
-          >
+              @click="expanded = !expanded">
               {{ expanded ? 'Hide' : 'Show more' }}
-          </n-button>
+            </n-button>
 
-          <div class="experience-card-footer-actions">
-              <n-button size="small" :disabled="isLoading" @click="handleEditCardAction">
-                Edit
-              </n-button>
-              <n-button size="small" type="error" :loading="isLoading" secondary @click="handleDeleteCardAction">
-                Delete
-              </n-button>
-              <n-button v-if="props.cardType === 'challenge'" size="small" type="primary" :loading="isLoading" secondary @click="findExperienceCards">
-                Find Experiences
+            <div class="experience-card-footer-actions">
+              <template v-if="!isReadOnly">
+                <n-button size="small" :disabled="isLoading" @click="handleEditCardAction">
+                  Edit
+                </n-button>
+                <n-button size="small" type="error" :disabled="isLoading" secondary @click="handleDeleteCardAction">
+                  Delete
+                </n-button>
+              </template>
+
+              <n-button
+                v-if="props.cardType === 'challenge'"
+                size="small"
+                type="primary"
+                :disabled="isLoading"
+                :loading="isLoading"
+                secondary
+                @click="findExperienceCards"
+              >
+                Find Experience
               </n-button>
           </div>
-          </div>
+        </div>
       </template>
       </n-card>
   </div>
 
   <CardDialog 
+      v-if="!isReadOnly"
       v-model="isEditCardDialogVisible" 
       :card="card as UpdateCardRequest" 
       :user-id="userId" 

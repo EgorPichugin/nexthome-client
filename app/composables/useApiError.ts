@@ -46,10 +46,11 @@ export class ApiError extends Error {
   }
 }
 
+// TODO: fix error handling!
 export function useApiError() {
   function getUserErrorMessages(error: unknown): string[] {
     if (!(error instanceof ApiError)) {
-      return [ApiErrorMessages[EApiErrorCode.UNKNOWN_ERROR]];
+      return [(error as any)?.message || ApiErrorMessages[EApiErrorCode.UNKNOWN_ERROR]];
     }
 
     if (error.code === EApiErrorCode.VALIDATION_FAILED && error.details) {

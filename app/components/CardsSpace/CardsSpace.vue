@@ -8,11 +8,13 @@ const user = defineModel<UserResponse>({required: true});
 const cards = defineModel<CardResponse[]>('cards', {required: false});
 
 defineProps<{
-  cardType: 'experience' | 'challenge'
+  cardType: 'experience' | 'challenge';
+  readonly?: boolean;
 }>();
 
 defineEmits<{
   (event: 'refresh'): void;
+  (event: 'similar', challengeCardId: string): void;
 }>();
 </script>
 
@@ -26,11 +28,13 @@ defineEmits<{
             :key="card.cardId"
             :user-id="user.userId"
             :card-type="cardType"
+            :readonly="readonly"
             @refresh="$emit('refresh')"
+            @similar="(cardId) => $emit('similar', cardId)"
         />
     </div>
     <div v-else class="flex w-full justify-center py-8">
-      <span class="text-gray-500">You have not added any cards yet.</span>
+      <span class="text-gray-1000">You have not added any cards yet.</span>
     </div>
 </n-space>
 
