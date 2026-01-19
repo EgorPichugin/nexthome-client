@@ -8,8 +8,8 @@ import type { UpdateCardRequest } from './Requests/UpdateCardRequest'
 import type { GetSimilarCardsRequest } from './Requests/GetSimilarCardsRequest'
 import type { UpdateProfileAvatarRequest } from './Requests/UpdateProfileAvatartRequest'
 
-const API_BASE_URL = 'http://localhost:5295/api';
-// const API_BASE_URL = 'https://nexthome-api-production.up.railway.app/api';
+// const API_BASE_URL = 'http://localhost:5295/api';
+const API_BASE_URL = 'https://nexthome-api-production.up.railway.app/api';
 const USERS_PREFIX = '/Users';
 const COUNTRIES_PREFIX = '/Countries';
 const COLLECTIONS_PREFIX = '/Collections';

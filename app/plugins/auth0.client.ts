@@ -7,7 +7,10 @@ export default defineNuxtPlugin((nuxtApp) => {
       clientId: String(useRuntimeConfig().public.auth0ClientId),
       authorizationParams: {
         redirect_uri: window.location.origin,
+        audience: 'https://api.nexthome',
+        scope: 'openid profile email',
       },
+      cacheLocation: 'localstorage',
     })
   )
 })

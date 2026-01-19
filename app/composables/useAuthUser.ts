@@ -22,9 +22,13 @@ export const useAuthUser = () => {
         return
       }
 
-      accessToken.value = await auth0!.getAccessTokenSilently({
-        authorizationParams: { audience: 'https://api.nexthome' },
-      })
+      try {
+        accessToken.value = await auth0!.getAccessTokenSilently({
+          authorizationParams: { audience: 'https://api.nexthome' },
+        })
+      } catch (error) {
+        accessToken.value = null
+      }
     },
     { immediate: true }
   );
@@ -34,7 +38,11 @@ export const useAuthUser = () => {
       user.value = null
       return
     }
-    user.value = await api.getMe()
+    try {
+      user.value = await api.getMe()
+    } catch (error) {
+      user.value = null
+    }
     },
     { immediate: true }
   );
