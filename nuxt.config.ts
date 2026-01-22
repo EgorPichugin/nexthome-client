@@ -1,7 +1,7 @@
 export default defineNuxtConfig({
   runtimeConfig: {
     public: {
-      apiBase: '',
+      apiBase: process.env.VITE_API_BASE || 'http://localhost:3000',
       auth0Domain: process.env.VITE_AUTH0_DOMAIN,
       auth0ClientId: process.env.VITE_AUTH0_CLIENT_ID,
       cloudinaryCloudName: process.env.VITE_CLOUDINARY_CLOUD_NAME,

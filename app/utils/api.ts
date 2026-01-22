@@ -7,12 +7,9 @@ import type { CardResponse } from './Responses/CardResponse'
 import type { UpdateCardRequest } from './Requests/UpdateCardRequest'
 import type { GetSimilarCardsRequest } from './Requests/GetSimilarCardsRequest'
 import type { UpdateProfileAvatarRequest } from './Requests/UpdateProfileAvatartRequest'
+import { Routes } from '~/utils/Routes'
 
-// const API_BASE_URL = 'http://localhost:5295/api';
-const API_BASE_URL = 'https://nexthome-api-production.up.railway.app/api';
-const USERS_PREFIX = '/Users';
-const COUNTRIES_PREFIX = '/Countries';
-const COLLECTIONS_PREFIX = '/Collections';
+const getApiBaseUrl = () => `${useRuntimeConfig().public.apiBase}/api`;
 
 async function parseJsonSafe(response: Response): Promise<unknown> {
   const contentType = response.headers.get('content-type') ?? ''
@@ -56,6 +53,7 @@ async function sendRequest<T>(
     ...(token ? { Authorization: `Bearer ${token}` } : {}),
   }
 
+  const API_BASE_URL = getApiBaseUrl();
   const response = await fetch(`${API_BASE_URL}${path}`, {
     ...fetchInit,
     headers: finalHeaders,
@@ -87,14 +85,14 @@ export const api = {
   //#region Users Controller
   //#region Users
   async getAllUsers(): Promise<UserResponse[]> {
-    return await requestAuth<UserResponse[]>(`${USERS_PREFIX}`, {
+    return await requestAuth<UserResponse[]>(`${Routes.USERS}`, {
       method: 'GET',
       errorCode: EApiErrorCode.GET_USERS_FAILED,
     });
   },
 
   async updateUserAvatar(userId: string, request: UpdateProfileAvatarRequest): Promise<UserResponse> {
-    let response = await requestAuth<UserResponse>(`${USERS_PREFIX}/${userId}/avatar`, {
+    let response = await requestAuth<UserResponse>(`${Routes.USERS}/${userId}/avatar`, {
       method: 'PUT',
       errorCode: EApiErrorCode.UNKNOWN_ERROR,
       headers: {
@@ -110,7 +108,7 @@ export const api = {
     userId: string,
     request: UserUpdateRequest,
   ): Promise<UserResponse> {
-    let response = await requestAuth<UserResponse>(`${USERS_PREFIX}/${userId}`, {
+    let response = await requestAuth<UserResponse>(`${Routes.USERS}/${userId}`, {
       method: 'PUT',
       errorCode: EApiErrorCode.UNKNOWN_ERROR,
       headers: {
@@ -123,7 +121,7 @@ export const api = {
   },
 
   async getMe(): Promise<UserResponse> {
-    return await requestAuth<UserResponse>(`${USERS_PREFIX}/me`, {
+    return await requestAuth<UserResponse>(`${Routes.USERS}/me`, {
       method: 'GET',
       errorCode: EApiErrorCode.GET_USER_FAILED,
     });
@@ -149,28 +147,32 @@ export const api = {
 
   //#region Experience Cards
   async getExperienceCardsByUserId(userId: string): Promise<CardResponse[]> {
-    return await requestAuth<CardResponse[]>(`${USERS_PREFIX}/${userId}/cards/experience`, {
+    const url: string = Routes.getExperienceCardUrl(userId);
+    return await requestAuth<CardResponse[]>(url, {
       method: 'GET',
       errorCode: EApiErrorCode.GET_EXPERIENCE_CARDS_FAILED,
     });
   },
 
-  async getExperienceCardById(cardId: string): Promise<CardResponse> {
-    return await requestAuth<CardResponse>(`${USERS_PREFIX}/cards/experience/${cardId}`, {
+  async getExperienceCardById(userId: string, cardId: string): Promise<CardResponse> {
+    const url: string = Routes.getExperienceCardUrl(userId, cardId);
+    return await requestAuth<CardResponse>(url, {
       method: 'GET',
       errorCode: EApiErrorCode.GET_EXPERIENCE_CARD_FAILED,
     });
   },
 
   async deleteExperienceCardById(userId: string, cardId: string): Promise<void> {
-    await requestAuth<void>(`${USERS_PREFIX}/${userId}/cards/experience/${cardId}`, {
+    const url = Routes.getExperienceCardUrl(userId, cardId);
+    await requestAuth<void>(url, {
       method: 'DELETE',
       errorCode: EApiErrorCode.UNKNOWN_ERROR,
     });
   },
 
   async createExperienceCard(userId: string, request: CreateCardRequest): Promise<CardResponse> {
-    return await requestAuth<CardResponse>(`${USERS_PREFIX}/${userId}/cards/experience`, {
+    const url: string = Routes.getExperienceCardUrl(userId);
+    return await requestAuth<CardResponse>(url, {
       method: 'POST',
       errorCode: EApiErrorCode.UNKNOWN_ERROR,
       headers: {
@@ -180,8 +182,9 @@ export const api = {
     });
   },
 
-  async updateExperienceCard(id: string, cardId: string, request: UpdateCardRequest): Promise<CardResponse> {
-    return await requestAuth<CardResponse>(`${USERS_PREFIX}/${id}/cards/experience/${cardId}`, {
+  async updateExperienceCard(userId: string, cardId: string, request: UpdateCardRequest): Promise<CardResponse> {
+    const url: string = Routes.getExperienceCardUrl(userId, cardId);
+    return await requestAuth<CardResponse>(url, {
       method: 'PUT',
       errorCode: EApiErrorCode.UNKNOWN_ERROR,
       headers: {
@@ -194,28 +197,32 @@ export const api = {
 
   //#region ChallengeCards
   async getChallengeCardsByUserId(userId: string): Promise<CardResponse[]> {
-    return await requestAuth<CardResponse[]>(`${USERS_PREFIX}/${userId}/cards/challenge`, {
+    const url: string = Routes.getChallengeCardUrl(userId);
+    return await requestAuth<CardResponse[]>(url, {
       method: 'GET',
       errorCode: EApiErrorCode.GET_CHALLENGE_CARDS_FAILED,
     });
   },
 
-  async getChallengeCardById(cardId: string): Promise<CardResponse> {
-    return await requestAuth<CardResponse>(`${USERS_PREFIX}/cards/challenge/${cardId}`, {
+  async getChallengeCardById(userId: string, cardId: string): Promise<CardResponse> {
+    const url = Routes.getChallengeCardUrl(userId, cardId);
+    return await requestAuth<CardResponse>(url, {
       method: 'GET',
       errorCode: EApiErrorCode.GET_CHALLENGE_CARD_FAILED,
     });
   },
 
   async deleteChallengeCardById(userId: string, cardId: string): Promise<void> {
-    await requestAuth<void>(`${USERS_PREFIX}/${userId}/cards/challenge/${cardId}`, {
+    const url = Routes.getChallengeCardUrl(userId, cardId);
+    await requestAuth<void>(url, {
       method: 'DELETE',
       errorCode: EApiErrorCode.UNKNOWN_ERROR,
     });
   },
 
   async createChallengeCard(userId: string, request: CreateCardRequest): Promise<CardResponse> {
-    return await requestAuth<CardResponse>(`${USERS_PREFIX}/${userId}/cards/challenge`, {
+    const url = Routes.getChallengeCardUrl(userId);
+    return await requestAuth<CardResponse>(url, {
       method: 'POST',
       errorCode: EApiErrorCode.UNKNOWN_ERROR,
       headers: {
@@ -225,8 +232,9 @@ export const api = {
     });
   },
 
-  async updateChallengeCard(id: string, cardId: string, request: UpdateCardRequest): Promise<CardResponse> {
-    return await requestAuth<CardResponse>(`${USERS_PREFIX}/${id}/cards/challenge/${cardId}`, {
+  async updateChallengeCard(userId: string, cardId: string, request: UpdateCardRequest): Promise<CardResponse> {
+      const url = Routes.getChallengeCardUrl(userId, cardId);
+    return await requestAuth<CardResponse>(url, {
       method: 'PUT',
       errorCode: EApiErrorCode.UNKNOWN_ERROR,
       headers: {
@@ -239,7 +247,8 @@ export const api = {
   //#endregion
   //#region Collections
   async searchSimilarCards(request: GetSimilarCardsRequest): Promise<CardResponse[]> {
-    return await requestAuth<CardResponse[]>(`${COLLECTIONS_PREFIX}/cards/similar`, {
+    const url = `${Routes.COLLECTIONS}/cards/similar`;
+    return await requestAuth<CardResponse[]>(url, {
       method: 'POST',
       errorCode: EApiErrorCode.UNKNOWN_ERROR,
       headers: {
@@ -253,7 +262,7 @@ export const api = {
 
   //#region Countries Controller
   async fetchCountries(): Promise<CountryResponse[]> {
-    return await requestAuth<CountryResponse[]>(`${COUNTRIES_PREFIX}`, {
+    return await requestAuth<CountryResponse[]>(`${Routes.COUNTRIES}`, {
       method: 'GET',
       errorCode: EApiErrorCode.GET_COUNTRIES_FAILED,
     });
